@@ -1,4 +1,4 @@
-﻿using System;
+﻿using HWM.Parser;
 
 namespace HWM
 {
@@ -6,7 +6,9 @@ namespace HWM
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var parser = new LeaderGuildParser();
+
+            parser.CollectData();
         }
     }
 }
