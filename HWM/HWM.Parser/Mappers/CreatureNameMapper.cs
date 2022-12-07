@@ -275,6 +275,7 @@ namespace HWM.Parser.Mappers
             { "familiar", "Черти" },
             { "horneddemon", "Рогатые демоны" },
             { "imp", "Бесы" },
+            { "lavadragon", "Лавовые драконы" },
             { "magmadragon", "Магма драконы" },
             { "firedragon", "Огненные драконы" },
             { "thunderlord", "Громовержцы" },
