@@ -59,7 +59,7 @@ namespace HWM.Parser
 
                 // Mapping for Russian text
                 var nameParts = url.Split('=');
-                string name = CreatureNameMapper.Map(nameParts[nameParts.Length - 1]);
+                string name = CreatureMapper.Map(nameParts[nameParts.Length - 1]);
 
                 HtmlNodeCollection creatureStats = creatureBody.SelectNodes("//div[@class='scroll_content_half']//div");
                 int attack = int.Parse(creatureStats[0].InnerText);

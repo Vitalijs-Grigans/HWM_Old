@@ -2,7 +2,7 @@
 
 namespace HWM.Parser.Mappers
 {
-    public static class CreatureNameMapper
+    public static class CreatureMapper
     {
         private static IDictionary<string, string> CreatureMap = new Dictionary<string, string>()
         {
@@ -58,6 +58,7 @@ namespace HWM.Parser.Mappers
             { "cursed", "Ведьмы-призраки" },
             { "harpyhag", "Гарпии-ведьмы" },
             { "gnollboss", "Гноллы-вожаки" },
+            { "warden", "Надзиратели" },
             { "crusader", "Крестоносцы" },
             { "priestess", "Жрицы моря" },
             { "fatpirate", "Толстяки" },
