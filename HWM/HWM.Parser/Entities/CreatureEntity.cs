@@ -10,6 +10,8 @@
 
         public string Name { get; set; }
 
+        public string DisplayName { get; set; }
+
         public int Attack { get; set; }
 
         public int Shots { get; set; }

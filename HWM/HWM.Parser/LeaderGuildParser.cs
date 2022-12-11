@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 
 using HtmlAgilityPack;
@@ -16,13 +17,15 @@ namespace HWM.Parser
     {
         private string _endpoint;
         private string _jsonFolder;
+        private string _imageFolder;
 
         public LeaderGuildParser() { }
         
-        public LeaderGuildParser(string endpoint, string jsonFolder) 
+        public LeaderGuildParser(string endpoint, string jsonFolder, string imageFolder)
         {
             _endpoint = endpoint;
             _jsonFolder = jsonFolder;
+            _imageFolder = imageFolder;
         }
         
         public void CollectData()
@@ -69,8 +72,9 @@ namespace HWM.Parser
                 HtmlNode creatureBody = creatureDoc.DocumentNode.SelectSingleNode("//body");
 
                 // Mapping for Russian text
-                var nameParts = url.Split('=');
-                string name = CreatureMapper.Map(nameParts[nameParts.Length - 1]);
+                string[] nameParts = url.Split('=');
+                string name = nameParts[nameParts.Length - 1];
+                string displayName = CreatureMapper.Map(name);
 
                 HtmlNodeCollection creatureStats = 
                     creatureBody.SelectNodes("//div[@class='scroll_content_half']//div");
@@ -103,6 +107,7 @@ namespace HWM.Parser
                     Background = background,
                     Url = url,
                     Name = name,
+                    DisplayName = displayName,
                     Attack = attack,
                     Shots = shots,
                     Defence = defence,
@@ -117,6 +122,26 @@ namespace HWM.Parser
                 };
 
                 creatureList.Add(creature);
+
+                HtmlNode image = anchor.ChildNodes[anchor.ChildNodes.Count - 1];
+                string imageUrl = image.Attributes["src"].Value;
+                string file = $"{name}.png";
+                string cachedImage = Directory.GetFiles(_imageFolder, file).FirstOrDefault();
+
+                if (cachedImage != null) 
+                {
+                    Console.WriteLine($"{file} is cached already");
+                }
+                
+                else
+                {
+                    using (var client = new WebClient())
+                    {
+                        client.DownloadFile(new Uri(imageUrl), $@"{_imageFolder}\{file}");
+                    }
+
+                    Console.WriteLine($"{file} has been downloaded");
+                }
 
                 Console.WriteLine("Processed " + id + " creatures...");
                 Console.WriteLine();

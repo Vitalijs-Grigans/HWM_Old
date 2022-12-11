@@ -19,7 +19,8 @@ namespace HWM
             var parser = new LeaderGuildParser
             (
                 config.GetSection("LeaderGuildEndpoint").Value,
-                config.GetSection("ParseResultsFolder").Value
+                config.GetSection("ParseResultsFolder").Value,
+                config.GetSection("CreatureImageFolder").Value
             );
 
             parser.CollectData();
