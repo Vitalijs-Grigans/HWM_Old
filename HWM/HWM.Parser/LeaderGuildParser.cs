@@ -19,6 +19,45 @@ namespace HWM.Parser
         private string _jsonFolder;
         private string _imageFolder;
 
+        private HtmlDocument GetLocalHtml(string url)
+        {
+            var doc = new HtmlDocument();
+
+            using (WebClient client = new WebClient())
+            {
+                string html = client.DownloadString(url);
+
+                doc.LoadHtml(html);
+            }
+
+            return doc;
+        }
+
+        private int ConvertToNumber(string input, bool nullable = false) 
+        {
+            int returnVal;
+
+            if (nullable)
+            {
+                int.TryParse(input, out returnVal);
+            }
+
+            else 
+            {
+                returnVal = int.Parse(input);
+            }
+
+            return returnVal;
+        }
+
+        private void DownloadFileFromUrl(string url, string fileName)
+        {
+            using (var client = new WebClient())
+            {
+                client.DownloadFile(new Uri(url), fileName);
+            }
+        }
+
         public LeaderGuildParser() { }
         
         public LeaderGuildParser(string endpoint, string jsonFolder, string imageFolder)
@@ -30,18 +69,11 @@ namespace HWM.Parser
         
         public void CollectData()
         {
-            var htmlDoc = new HtmlDocument();
-
-            using (WebClient client = new WebClient())
-            {
-                string html = client.DownloadString(_endpoint);
-
-                htmlDoc.LoadHtml(html);
-            }
+            HtmlDocument htmlDoc = GetLocalHtml(_endpoint);
 
             HtmlNode body = htmlDoc.DocumentNode.SelectSingleNode("//body");
             HtmlNodeCollection creatureNodes = 
-                body.SelectNodes("//div[@class='cre_mon_parent']/a");
+                body.SelectNodes("//div[@class='fcont']//div[@class='cre_mon_parent']/a");
 
             IList<CreatureEntity> creatureList = new List<CreatureEntity>();
 
@@ -49,57 +81,39 @@ namespace HWM.Parser
 
             foreach (var anchor in creatureNodes)
             {
-                var creatureDoc = new HtmlDocument();
-
-                HtmlNode backgroundStyleNode = anchor.ParentNode.ParentNode.ParentNode;
-                string backgroundStyle = backgroundStyleNode.Attributes["style"].Value;
-                string[] backgroundArr = backgroundStyle.Split(':');
-                string background = backgroundArr[backgroundArr.Length - 1];
-
-                Console.WriteLine("Background: " + background);
+                string backgroundStyle =
+                    anchor.ParentNode.ParentNode.ParentNode.Attributes["style"].Value;
+                string background = backgroundStyle.Split(':').LastOrDefault();
 
                 string url = anchor.Attributes["href"].Value;
 
-                Console.WriteLine("Url: " + url);
+                Console.WriteLine($"Background: {background}");
+                Console.WriteLine($"Url: {url}");
 
-                using (WebClient client = new WebClient())
-                {
-                    string html = client.DownloadString(url);
-
-                    creatureDoc.LoadHtml(html);
-                }
-
+                HtmlDocument creatureDoc = GetLocalHtml(url);
                 HtmlNode creatureBody = creatureDoc.DocumentNode.SelectSingleNode("//body");
 
-                // Mapping for Russian text
-                string[] nameParts = url.Split('=');
-                string name = nameParts[nameParts.Length - 1];
+                string name = url.Split('=').LastOrDefault();
                 string displayName = CreatureMapper.Map(name);
 
                 HtmlNodeCollection creatureStats = 
                     creatureBody.SelectNodes("//div[@class='scroll_content_half']//div");
-                int attack = int.Parse(creatureStats[0].InnerText);
 
-                int shots;
-                int.TryParse(creatureStats[1].InnerText, out shots);
-
-                int defence = int.Parse(creatureStats[2].InnerText);
-
-                int mana;
-                int.TryParse(creatureStats[3].InnerText, out mana);
+                int attack = ConvertToNumber(creatureStats[0].InnerText);
+                int shots = ConvertToNumber(creatureStats[1].InnerText, nullable: true);
+                int defence = ConvertToNumber(creatureStats[2].InnerText);
+                int mana = ConvertToNumber(creatureStats[3].InnerText, nullable: true);
 
                 string[] damageParts = creatureStats[4].InnerText.Split('-');
-                int minDamage = int.Parse(damageParts[0]);
-                int maxDamage = int.Parse(damageParts[damageParts.Length - 1]);
+                int minDamage = ConvertToNumber(damageParts.FirstOrDefault());
+                int maxDamage = ConvertToNumber(damageParts.LastOrDefault());
 
-                int range;
-                int.TryParse(creatureStats[5].InnerText, out range);
-
-                int hitPoints = int.Parse(creatureStats[6].InnerText);
-                int initiative = int.Parse(creatureStats[7].InnerText);
-                int movement = int.Parse(creatureStats[8].InnerText);
-                int leadership = 
-                    int.Parse(creatureStats[9].InnerText.Replace(",", string.Empty));
+                int range = ConvertToNumber(creatureStats[5].InnerText, nullable: true);
+                int hitPoints = ConvertToNumber(creatureStats[6].InnerText);
+                int initiative = ConvertToNumber(creatureStats[7].InnerText);
+                int movement = ConvertToNumber(creatureStats[8].InnerText);
+                int leadership =
+                    ConvertToNumber(creatureStats[9].InnerText.Replace(",", string.Empty));
 
                 var creature = new CreatureEntity()
                 {
@@ -123,8 +137,7 @@ namespace HWM.Parser
 
                 creatureList.Add(creature);
 
-                HtmlNode image = anchor.ChildNodes[anchor.ChildNodes.Count - 1];
-                string imageUrl = image.Attributes["src"].Value;
+                string imageUrl = anchor.ChildNodes.LastOrDefault().Attributes["src"].Value;
                 string file = $"{name}.png";
                 string cachedImage = Directory.GetFiles(_imageFolder, file).FirstOrDefault();
 
@@ -135,11 +148,7 @@ namespace HWM.Parser
                 
                 else
                 {
-                    using (var client = new WebClient())
-                    {
-                        client.DownloadFile(new Uri(imageUrl), $@"{_imageFolder}\{file}");
-                    }
-
+                    DownloadFileFromUrl(imageUrl, $@"{_imageFolder}\{file}");
                     Console.WriteLine($"{file} has been downloaded");
                 }
 
@@ -148,7 +157,6 @@ namespace HWM.Parser
             }
 
             var json = JsonConvert.SerializeObject(creatureList, Formatting.Indented);
-
             File.WriteAllText($@"{_jsonFolder}\LGCreatures.json", json);
         }
     }
