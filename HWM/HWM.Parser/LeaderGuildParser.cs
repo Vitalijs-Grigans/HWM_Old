@@ -1,33 +1,44 @@
-﻿using HtmlAgilityPack;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+
+using HtmlAgilityPack;
+using Newtonsoft.Json;
 
 using HWM.Parser.Interfaces;
 using HWM.Parser.Entities;
-
-using System;
-using System.Collections.Generic;
-using System.Net;
-using Newtonsoft.Json;
-using System.IO;
 using HWM.Parser.Mappers;
 
 namespace HWM.Parser
 {
     public class LeaderGuildParser : IParser
     {
+        private string _endpoint;
+        private string _jsonFolder;
+
+        public LeaderGuildParser() { }
+        
+        public LeaderGuildParser(string endpoint, string jsonFolder) 
+        {
+            _endpoint = endpoint;
+            _jsonFolder = jsonFolder;
+        }
+        
         public void CollectData()
         {
-            string webpage = "https://daily.heroeswm.ru/leader/leader.php";
             var htmlDoc = new HtmlDocument();
 
             using (WebClient client = new WebClient())
             {
-                string html = client.DownloadString(webpage);
+                string html = client.DownloadString(_endpoint);
 
                 htmlDoc.LoadHtml(html);
             }
 
             HtmlNode body = htmlDoc.DocumentNode.SelectSingleNode("//body");
-            HtmlNodeCollection creatureNodes = body.SelectNodes("//div[@class='cre_mon_parent']/a");
+            HtmlNodeCollection creatureNodes = 
+                body.SelectNodes("//div[@class='cre_mon_parent']/a");
 
             IList<CreatureEntity> creatureList = new List<CreatureEntity>();
 
@@ -61,7 +72,8 @@ namespace HWM.Parser
                 var nameParts = url.Split('=');
                 string name = CreatureMapper.Map(nameParts[nameParts.Length - 1]);
 
-                HtmlNodeCollection creatureStats = creatureBody.SelectNodes("//div[@class='scroll_content_half']//div");
+                HtmlNodeCollection creatureStats = 
+                    creatureBody.SelectNodes("//div[@class='scroll_content_half']//div");
                 int attack = int.Parse(creatureStats[0].InnerText);
 
                 int shots;
@@ -82,7 +94,8 @@ namespace HWM.Parser
                 int hitPoints = int.Parse(creatureStats[6].InnerText);
                 int initiative = int.Parse(creatureStats[7].InnerText);
                 int movement = int.Parse(creatureStats[8].InnerText);
-                int leadership = int.Parse(creatureStats[9].InnerText.Replace(",", string.Empty));
+                int leadership = 
+                    int.Parse(creatureStats[9].InnerText.Replace(",", string.Empty));
 
                 var creature = new CreatureEntity()
                 {
@@ -111,7 +124,7 @@ namespace HWM.Parser
 
             var json = JsonConvert.SerializeObject(creatureList, Formatting.Indented);
 
-            File.WriteAllText(@"D:\Database\HWM.Leader\02-12-2022\LGCreatures.json", json);
+            File.WriteAllText($@"{_jsonFolder}\LGCreatures.json", json);
         }
     }
 }

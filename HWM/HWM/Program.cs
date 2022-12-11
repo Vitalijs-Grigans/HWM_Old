@@ -1,4 +1,8 @@
-﻿using HWM.Parser;
+﻿using System.IO;
+
+using Microsoft.Extensions.Configuration;
+
+using HWM.Parser;
 
 namespace HWM
 {
@@ -6,7 +10,17 @@ namespace HWM
     {
         static void Main(string[] args)
         {
-            var parser = new LeaderGuildParser();
+            IConfigurationBuilder builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json");
+
+            IConfigurationRoot config = builder.Build();
+
+            var parser = new LeaderGuildParser
+            (
+                config.GetSection("LeaderGuildEndpoint").Value,
+                config.GetSection("ParseResultsFolder").Value
+            );
 
             parser.CollectData();
         }
