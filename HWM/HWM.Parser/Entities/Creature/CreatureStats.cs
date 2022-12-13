@@ -1,17 +1,7 @@
-﻿namespace HWM.Parser.Entities
+﻿namespace HWM.Parser.Entities.Creature
 {
-    public class CreatureEntity
+    public class CreatureStats
     {
-        public int Id { get; set; }
-
-        public string Url { get; set; }
-
-        public string Background { get; set; }
-
-        public string Name { get; set; }
-
-        public string DisplayName { get; set; }
-
         public int Attack { get; set; }
 
         public int Shots { get; set; }
@@ -31,7 +21,5 @@
         public int Initiative { get; set; }
 
         public int Movement { get; set; }
-
-        public int Leadership { get; set; }
     }
 }

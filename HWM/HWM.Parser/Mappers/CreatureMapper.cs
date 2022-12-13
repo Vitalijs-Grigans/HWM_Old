@@ -341,19 +341,7 @@ namespace HWM.Parser.Mappers
 
         public static string Map(string name)
         {
-            string localizedName;
-
-            if (CreatureMap.ContainsKey(name))
-            {
-                localizedName = CreatureMap[name];
-            }
-            
-            else
-            {
-                localizedName = name;
-            }
-
-            return localizedName;
+            return CreatureMap.ContainsKey(name) ? CreatureMap[name] : name;
         }
     }
 }

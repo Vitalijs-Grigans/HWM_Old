@@ -8,7 +8,8 @@ using HtmlAgilityPack;
 using Newtonsoft.Json;
 
 using HWM.Parser.Interfaces;
-using HWM.Parser.Entities;
+using HWM.Parser.Entities.Creature;
+using HWM.Parser.Entities.LeaderGuild;
 using HWM.Parser.Mappers;
 
 namespace HWM.Parser
@@ -31,6 +32,34 @@ namespace HWM.Parser
             }
 
             return doc;
+        }
+
+        private string GetFollowerRarity(string colorHex)
+        {
+            string tier = string.Empty;
+
+            switch (colorHex.ToLower())
+            {
+                case "#fdd7a7":
+                    tier = Rarity.Mythical;
+                    break;
+                case "#f4e5b0":
+                    tier = Rarity.Legendary;
+                    break;
+                case "#9cb6d4":
+                    tier = Rarity.VeryRare;
+                    break;
+                case "#bea798":
+                    tier = Rarity.Rare;
+                    break;
+                case "#bfbfbf":
+                    tier = Rarity.Standard;
+                    break;
+                default:
+                    break;
+            }
+
+            return tier;
         }
 
         private int ConvertToNumber(string input, bool nullable = false) 
@@ -75,7 +104,7 @@ namespace HWM.Parser
             HtmlNodeCollection creatureNodes = 
                 body.SelectNodes("//div[@class='fcont']//div[@class='cre_mon_parent']/a");
 
-            IList<CreatureEntity> creatureList = new List<CreatureEntity>();
+            IList<Follower> creatureList = new List<Follower>();
 
             int id = 0;
 
@@ -83,11 +112,11 @@ namespace HWM.Parser
             {
                 string backgroundStyle =
                     anchor.ParentNode.ParentNode.ParentNode.Attributes["style"].Value;
-                string background = backgroundStyle.Split(':').LastOrDefault();
+                string rarity = GetFollowerRarity(backgroundStyle.Split(':').LastOrDefault());
 
                 string url = anchor.Attributes["href"].Value;
 
-                Console.WriteLine($"Background: {background}");
+                Console.WriteLine($"Tier: {rarity}");
                 Console.WriteLine($"Url: {url}");
 
                 HtmlDocument creatureDoc = GetLocalHtml(url);
@@ -95,6 +124,8 @@ namespace HWM.Parser
 
                 string name = url.Split('=').LastOrDefault();
                 string displayName = CreatureMapper.Map(name);
+
+                Console.WriteLine($"Creature: {displayName}");
 
                 HtmlNodeCollection creatureStats = 
                     creatureBody.SelectNodes("//div[@class='scroll_content_half']//div");
@@ -115,27 +146,30 @@ namespace HWM.Parser
                 int leadership =
                     ConvertToNumber(creatureStats[9].InnerText.Replace(",", string.Empty));
 
-                var creature = new CreatureEntity()
+                var follower = new Follower()
                 {
                     Id = id++,
-                    Background = background,
                     Url = url,
                     Name = name,
                     DisplayName = displayName,
-                    Attack = attack,
-                    Shots = shots,
-                    Defence = defence,
-                    Mana = mana,
-                    MinDamage = minDamage,
-                    MaxDamage = maxDamage,
-                    Range = range,
-                    HitPoints = hitPoints,
-                    Initiative = initiative,
-                    Movement = movement,
+                    Tier = rarity,
+                    Characteristics = new CreatureStats()
+                    {
+                        Attack = attack,
+                        Shots = shots,
+                        Defence = defence,
+                        Mana = mana,
+                        MinDamage = minDamage,
+                        MaxDamage = maxDamage,
+                        Range = range,
+                        HitPoints = hitPoints,
+                        Initiative = initiative,
+                        Movement = movement
+                    },
                     Leadership = leadership
                 };
 
-                creatureList.Add(creature);
+                creatureList.Add(follower);
 
                 string imageUrl = anchor.ChildNodes.LastOrDefault().Attributes["src"].Value;
                 string file = $"{name}.png";
