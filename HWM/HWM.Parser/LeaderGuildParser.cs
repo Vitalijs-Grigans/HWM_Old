@@ -112,61 +112,38 @@ namespace HWM.Parser
             {
                 string backgroundStyle =
                     anchor.ParentNode.ParentNode.ParentNode.Attributes["style"].Value;
-                string rarity = GetFollowerRarity(backgroundStyle.Split(':').LastOrDefault());
-
                 string url = anchor.Attributes["href"].Value;
-
-                Console.WriteLine($"Tier: {rarity}");
-                Console.WriteLine($"Url: {url}");
-
-                HtmlDocument creatureDoc = GetLocalHtml(url);
-                HtmlNode creatureBody = creatureDoc.DocumentNode.SelectSingleNode("//body");
-
                 string name = url.Split('=').LastOrDefault();
                 string displayName = CreatureMapper.Map(name);
 
-                Console.WriteLine($"Creature: {displayName}");
-
+                HtmlDocument creatureDoc = GetLocalHtml(url);
+                HtmlNode creatureBody = creatureDoc.DocumentNode.SelectSingleNode("//body");
                 HtmlNodeCollection creatureStats = 
                     creatureBody.SelectNodes("//div[@class='scroll_content_half']//div");
 
-                int attack = ConvertToNumber(creatureStats[0].InnerText);
-                int shots = ConvertToNumber(creatureStats[1].InnerText, nullable: true);
-                int defence = ConvertToNumber(creatureStats[2].InnerText);
-                int mana = ConvertToNumber(creatureStats[3].InnerText, nullable: true);
-
                 string[] damageParts = creatureStats[4].InnerText.Split('-');
-                int minDamage = ConvertToNumber(damageParts.FirstOrDefault());
-                int maxDamage = ConvertToNumber(damageParts.LastOrDefault());
-
-                int range = ConvertToNumber(creatureStats[5].InnerText, nullable: true);
-                int hitPoints = ConvertToNumber(creatureStats[6].InnerText);
-                int initiative = ConvertToNumber(creatureStats[7].InnerText);
-                int movement = ConvertToNumber(creatureStats[8].InnerText);
-                int leadership =
-                    ConvertToNumber(creatureStats[9].InnerText.Replace(",", string.Empty));
 
                 var follower = new Follower()
                 {
                     Id = id++,
                     Url = url,
                     Name = name,
-                    DisplayName = displayName,
-                    Tier = rarity,
+                    DisplayName = CreatureMapper.Map(name),
+                    Tier = GetFollowerRarity(backgroundStyle.Split(':').LastOrDefault()),
                     Characteristics = new CreatureStats()
                     {
-                        Attack = attack,
-                        Shots = shots,
-                        Defence = defence,
-                        Mana = mana,
-                        MinDamage = minDamage,
-                        MaxDamage = maxDamage,
-                        Range = range,
-                        HitPoints = hitPoints,
-                        Initiative = initiative,
-                        Movement = movement
+                        Attack = ConvertToNumber(creatureStats[0].InnerText),
+                        Shots = ConvertToNumber(creatureStats[1].InnerText, nullable: true),
+                        Defence = ConvertToNumber(creatureStats[2].InnerText),
+                        Mana = ConvertToNumber(creatureStats[3].InnerText, nullable: true),
+                        MinDamage = ConvertToNumber(damageParts.FirstOrDefault()),
+                        MaxDamage = ConvertToNumber(damageParts.LastOrDefault()),
+                        Range = ConvertToNumber(creatureStats[5].InnerText, nullable: true),
+                        HitPoints = ConvertToNumber(creatureStats[6].InnerText),
+                        Initiative = ConvertToNumber(creatureStats[7].InnerText),
+                        Movement = ConvertToNumber(creatureStats[8].InnerText)
                     },
-                    Leadership = leadership
+                    Leadership = ConvertToNumber(creatureStats[9].InnerText.Replace(",", string.Empty))
                 };
 
                 creatureList.Add(follower);
@@ -191,6 +168,7 @@ namespace HWM.Parser
             }
 
             var json = JsonConvert.SerializeObject(creatureList, Formatting.Indented);
+
             File.WriteAllText($@"{_jsonFolder}\LGCreatures.json", json);
         }
     }
