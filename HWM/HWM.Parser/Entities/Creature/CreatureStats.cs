@@ -21,5 +21,7 @@
         public int Initiative { get; set; }
 
         public int Movement { get; set; }
+
+        public int Abilities { get; set; }
     }
 }

@@ -110,16 +110,24 @@ namespace HWM.Parser
 
             foreach (var anchor in creatureNodes)
             {
+                Console.Clear();
+                
                 string backgroundStyle =
                     anchor.ParentNode.ParentNode.ParentNode.Attributes["style"].Value;
                 string url = anchor.Attributes["href"].Value;
                 string name = url.Split('=').LastOrDefault();
                 string displayName = CreatureMapper.Map(name);
 
+                string imageUrl = anchor.ChildNodes.LastOrDefault().Attributes["src"].Value;
+                string file = $"{name}.png";
+                string cachedImage = Directory.GetFiles(_imageFolder, file).FirstOrDefault();
+
                 HtmlDocument creatureDoc = GetLocalHtml(url);
                 HtmlNode creatureBody = creatureDoc.DocumentNode.SelectSingleNode("//body");
                 HtmlNodeCollection creatureStats = 
                     creatureBody.SelectNodes("//div[@class='scroll_content_half']//div");
+                HtmlNodeCollection creatureSkills =
+                    creatureBody.SelectNodes("//div[@class='army_info_skills']/span");
 
                 string[] damageParts = creatureStats[4].InnerText.Split('-');
 
@@ -141,30 +149,23 @@ namespace HWM.Parser
                         Range = ConvertToNumber(creatureStats[5].InnerText, nullable: true),
                         HitPoints = ConvertToNumber(creatureStats[6].InnerText),
                         Initiative = ConvertToNumber(creatureStats[7].InnerText),
-                        Movement = ConvertToNumber(creatureStats[8].InnerText)
+                        Movement = ConvertToNumber(creatureStats[8].InnerText),
+                        Abilities = (creatureSkills != null) ? creatureSkills.Count : 0
                     },
                     Leadership = ConvertToNumber(creatureStats[9].InnerText.Replace(",", string.Empty))
                 };
 
                 creatureList.Add(follower);
 
-                string imageUrl = anchor.ChildNodes.LastOrDefault().Attributes["src"].Value;
-                string file = $"{name}.png";
-                string cachedImage = Directory.GetFiles(_imageFolder, file).FirstOrDefault();
-
-                if (cachedImage != null) 
-                {
-                    Console.WriteLine($"{file} is cached already");
-                }
-                
-                else
+                if (cachedImage == null)
                 {
                     DownloadFileFromUrl(imageUrl, $@"{_imageFolder}\{file}");
-                    Console.WriteLine($"{file} has been downloaded");
                 }
 
-                Console.WriteLine("Processed " + id + " creatures...");
-                Console.WriteLine();
+                Console.WriteLine
+                (
+                    string.Format("Processed {0} out of {1} creatures", id, creatureNodes.Count)
+                );
             }
 
             var json = JsonConvert.SerializeObject(creatureList, Formatting.Indented);
