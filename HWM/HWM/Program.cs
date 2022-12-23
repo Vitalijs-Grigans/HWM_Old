@@ -24,6 +24,7 @@ namespace HWM
             );
 
             parser.CollectData();
+            parser.ProcessData();
         }
     }
 }

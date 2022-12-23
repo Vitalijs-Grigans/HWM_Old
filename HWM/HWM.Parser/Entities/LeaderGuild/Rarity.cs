@@ -1,15 +1,22 @@
-﻿namespace HWM.Parser.Entities.LeaderGuild
+﻿using System.ComponentModel;
+
+namespace HWM.Parser.Entities.LeaderGuild
 {
-    public class Rarity
+    public enum Rarity
     {
-        public static readonly string Standard = "Standard";
+        [Description("Mythical")]
+        Mythical,
 
-        public static readonly string Rare = "Rare";
+        [Description("Legendary")]
+        Legendary,
 
-        public static readonly string VeryRare = "Very Rare";
+        [Description("Very Rare")]
+        VeryRare,
 
-        public static readonly string Legendary = "Legendary";
+        [Description("Rare")]
+        Rare,
 
-        public static readonly string Mythical = "Mythical";
+        [Description("Standard")]
+        Standard
     }
 }

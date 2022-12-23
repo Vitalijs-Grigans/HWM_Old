@@ -8,5 +8,7 @@ namespace HWM.Parser.Entities.LeaderGuild
         public string Tier { get; set; }
 
         public int Leadership { get; set; }
+
+        public Rating Efficiency { get; set; }
     }
 }

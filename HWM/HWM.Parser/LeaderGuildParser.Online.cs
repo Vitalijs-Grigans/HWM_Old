@@ -5,16 +5,17 @@ using System.Linq;
 using System.Net;
 
 using HtmlAgilityPack;
-using Newtonsoft.Json;
 
+using HWM.Parser.Helpers;
 using HWM.Parser.Interfaces;
 using HWM.Parser.Entities.Creature;
 using HWM.Parser.Entities.LeaderGuild;
+using HWM.Parser.Extensions;
 using HWM.Parser.Mappers;
 
 namespace HWM.Parser
 {
-    public class LeaderGuildParser : IParser
+    public partial class LeaderGuildParser : IParser
     {
         private string _endpoint;
         private string _jsonFolder;
@@ -41,19 +42,19 @@ namespace HWM.Parser
             switch (colorHex.ToLower())
             {
                 case "#fdd7a7":
-                    tier = Rarity.Mythical;
+                    tier = Rarity.Mythical.GetDisplayName();
                     break;
                 case "#f4e5b0":
-                    tier = Rarity.Legendary;
+                    tier = Rarity.Legendary.GetDisplayName();
                     break;
                 case "#9cb6d4":
-                    tier = Rarity.VeryRare;
+                    tier = Rarity.VeryRare.GetDisplayName();
                     break;
                 case "#bea798":
-                    tier = Rarity.Rare;
+                    tier = Rarity.Rare.GetDisplayName();
                     break;
                 case "#bfbfbf":
-                    tier = Rarity.Standard;
+                    tier = Rarity.Standard.GetDisplayName();
                     break;
                 default:
                     break;
@@ -137,7 +138,6 @@ namespace HWM.Parser
                     Url = url,
                     Name = name,
                     DisplayName = CreatureMapper.Map(name),
-                    Tier = GetFollowerRarity(backgroundStyle.Split(':').LastOrDefault()),
                     Characteristics = new CreatureStats()
                     {
                         Attack = ConvertToNumber(creatureStats[0].InnerText),
@@ -152,7 +152,8 @@ namespace HWM.Parser
                         Movement = ConvertToNumber(creatureStats[8].InnerText),
                         Abilities = (creatureSkills != null) ? creatureSkills.Count : 0
                     },
-                    Leadership = ConvertToNumber(creatureStats[9].InnerText.Replace(",", string.Empty))
+                    Tier = GetFollowerRarity(backgroundStyle.Split(':').LastOrDefault()),
+                    Leadership = ConvertToNumber(creatureStats[9].InnerText.Replace(",", string.Empty)),
                 };
 
                 creatureList.Add(follower);
@@ -162,15 +163,10 @@ namespace HWM.Parser
                     DownloadFileFromUrl(imageUrl, $@"{_imageFolder}\{file}");
                 }
 
-                Console.WriteLine
-                (
-                    string.Format("Processed {0} out of {1} creatures", id, creatureNodes.Count)
-                );
+                Console.WriteLine($"Processed {id} out of {creatureNodes.Count}");
             }
 
-            var json = JsonConvert.SerializeObject(creatureList, Formatting.Indented);
-
-            File.WriteAllText($@"{_jsonFolder}\LGCreatures.json", json);
+            FileStoreHelper.SaveJsonFile(creatureList, $@"{_jsonFolder}\LGCreatures.json");
         }
     }
 }
