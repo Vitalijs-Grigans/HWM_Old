@@ -27,6 +27,7 @@ namespace HWM.Parser
                         HitPoints = (double)follower.Characteristics.HitPoints / follower.Leadership,
                         Movement = (double)follower.Characteristics.Movement / follower.Leadership,
                         Initiative = (double)follower.Characteristics.Initiative / follower.Leadership,
+                        Abilities = (double)follower.Characteristics.Abilities / follower.Leadership,
                         Offense =
                             (double)
                             ((follower.Characteristics.MinDamage + follower.Characteristics.MaxDamage) / 2 *
@@ -55,6 +56,7 @@ namespace HWM.Parser
                 { "HitPoints", creatures.Max(c => c.Efficiency.Absolute.HitPoints) },
                 { "Movement", creatures.Max(c => c.Efficiency.Absolute.Movement) },
                 { "Initiative", creatures.Max(c => c.Efficiency.Absolute.Initiative) },
+                { "Abilities", creatures.Max(c => c.Efficiency.Absolute.Abilities) },
                 { "Offense", creatures.Max(c => c.Efficiency.Absolute.Offense) },
                 { "Survivability", creatures.Max(c => c.Efficiency.Absolute.Survivability) },
                 { "Rush", creatures.Max(c => c.Efficiency.Absolute.Rush) }
@@ -74,6 +76,7 @@ namespace HWM.Parser
                     HitPoints = follower.Efficiency.Absolute.HitPoints / max["HitPoints"] * 100,
                     Movement = follower.Efficiency.Absolute.Movement / max["Movement"] * 100,
                     Initiative = follower.Efficiency.Absolute.Initiative / max["Initiative"] * 100,
+                    Abilities = follower.Efficiency.Absolute.Abilities / max["Abilities"] * 100,
                     Offense = follower.Efficiency.Absolute.Offense / max["Offense"] * 100,
                     Survivability = follower.Efficiency.Absolute.Survivability / max["Survivability"] * 100,
                     Rush = follower.Efficiency.Absolute.Rush / max["Rush"] * 100
@@ -94,6 +97,7 @@ namespace HWM.Parser
                     follower.Efficiency.Relative.HitPoints,
                     follower.Efficiency.Relative.Movement,
                     follower.Efficiency.Relative.Initiative,
+                    follower.Efficiency.Relative.Abilities,
                     follower.Efficiency.Relative.Offense,
                     follower.Efficiency.Relative.Survivability,
                     follower.Efficiency.Relative.Rush
@@ -108,6 +112,7 @@ namespace HWM.Parser
                     HitPoints = (int)Math.Round(follower.Efficiency.Relative.HitPoints),
                     Movement = (int)Math.Round(follower.Efficiency.Relative.Movement),
                     Initiative = (int)Math.Round(follower.Efficiency.Relative.Initiative),
+                    Abilities = (int)Math.Round(follower.Efficiency.Relative.Abilities),
                     Offense = (int)Math.Round(follower.Efficiency.Relative.Offense),
                     Survivability = (int)Math.Round(follower.Efficiency.Relative.Survivability),
                     Rush = (int)Math.Round(follower.Efficiency.Relative.Rush),

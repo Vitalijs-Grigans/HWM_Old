@@ -16,6 +16,8 @@
 
         public int Initiative { get; set; }
 
+        public int Abilities { get; set; }
+
         public int Offense { get; set; }
 
         public int Survivability { get; set; }

@@ -16,6 +16,8 @@
 
         public double Initiative { get; set; }
 
+        public double Abilities { get; set; }
+
         public double Offense { get; set; }
 
         public double Survivability { get; set; }
