@@ -35,32 +35,33 @@ namespace HWM.Parser
             return doc;
         }
 
-        private string GetFollowerRarity(string colorHex)
+        private Rarity GetFollowerRarity(string colorHex)
         {
-            string tier = string.Empty;
+            Rarity rarity = default(Rarity);
 
             switch (colorHex.ToLower())
             {
                 case "#fdd7a7":
-                    tier = Rarity.Mythical.GetDisplayName();
+                    rarity = Rarity.Mythical;
                     break;
                 case "#f4e5b0":
-                    tier = Rarity.Legendary.GetDisplayName();
+                    rarity = Rarity.Legendary;
                     break;
                 case "#9cb6d4":
-                    tier = Rarity.VeryRare.GetDisplayName();
+                    rarity = Rarity.VeryRare;
                     break;
                 case "#bea798":
-                    tier = Rarity.Rare.GetDisplayName();
+                    rarity = Rarity.Rare;
                     break;
                 case "#bfbfbf":
-                    tier = Rarity.Standard.GetDisplayName();
+                    rarity = Rarity.Standard;
                     break;
                 default:
+                    rarity = Rarity.None;
                     break;
             }
 
-            return tier;
+            return rarity;
         }
 
         private int ConvertToNumber(string input, bool nullable = false) 
@@ -131,6 +132,7 @@ namespace HWM.Parser
                     creatureBody.SelectNodes("//div[@class='army_info_skills']/span");
 
                 string[] damageParts = creatureStats[4].InnerText.Split('-');
+                Rarity tier = GetFollowerRarity(backgroundStyle.Split(':').LastOrDefault());
 
                 var follower = new Follower()
                 {
@@ -152,7 +154,8 @@ namespace HWM.Parser
                         Movement = ConvertToNumber(creatureStats[8].InnerText),
                         Abilities = (creatureSkills != null) ? creatureSkills.Count : 0
                     },
-                    Tier = GetFollowerRarity(backgroundStyle.Split(':').LastOrDefault()),
+                    Tier = tier,
+                    DisplayTier = tier.GetDisplayName(),
                     Leadership = ConvertToNumber(creatureStats[9].InnerText.Replace(",", string.Empty)),
                 };
 

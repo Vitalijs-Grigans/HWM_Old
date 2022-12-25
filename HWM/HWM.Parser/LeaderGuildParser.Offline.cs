@@ -12,7 +12,62 @@ namespace HWM.Parser
 {
     public partial class LeaderGuildParser : IParser
     { 
-        private IDictionary<string, double> CalculateAbsoluteEfficiency(IList<Follower> creatures)
+        private double AssignTierModifier(double value, Rarity tier)
+        {
+            double result = default(double);
+            
+            switch (tier)
+            {
+                case Rarity.Mythical:
+                    result = value / 0.8;
+                    break;
+
+                case Rarity.Legendary:
+                    result = value / 0.85;
+                    break;
+
+                case Rarity.VeryRare:
+                    result = value / 0.9;
+                    break;
+
+                case Rarity.Rare:
+                    result = value / 0.95;
+                    break;
+
+                case Rarity.Standard:
+                    result = value;
+                    break;
+
+                default:
+                    break;
+            }
+
+            return result;
+        }
+        
+        private double CalculateEfficiency(double absoluteStatValue, int leadership, Rarity tier)
+        {
+            double efficiency = absoluteStatValue / leadership;
+
+            return AssignTierModifier(efficiency, tier);
+        }
+
+        private double CalculateEfficiency
+        (
+            double baseStatValue,
+            double extraStatValue,
+            double coefficient,
+            int leadership, 
+            Rarity tier
+        )
+        {
+            double efficiency =
+                baseStatValue * (1 + extraStatValue * coefficient) / leadership;
+            
+            return AssignTierModifier(efficiency, tier);
+        }
+        
+        private IDictionary<string, double[]> GetAbsoluteEfficiency(IList<Follower> creatures)
         {
             foreach (var follower in creatures)
             {
@@ -20,71 +75,262 @@ namespace HWM.Parser
                 {
                     Absolute = new AbsoluteRating()
                     {
-                        Attack = (double)follower.Characteristics.Attack / follower.Leadership,
-                        Defence = (double)follower.Characteristics.Defence / follower.Leadership,
-                        MinDamage = (double)follower.Characteristics.MinDamage / follower.Leadership,
-                        MaxDamage = (double)follower.Characteristics.MaxDamage / follower.Leadership,
-                        HitPoints = (double)follower.Characteristics.HitPoints / follower.Leadership,
-                        Movement = (double)follower.Characteristics.Movement / follower.Leadership,
-                        Initiative = (double)follower.Characteristics.Initiative / follower.Leadership,
-                        Abilities = (double)follower.Characteristics.Abilities / follower.Leadership,
+                        Attack =
+                            CalculateEfficiency
+                            (
+                                follower.Characteristics.Attack,
+                                follower.Leadership,
+                                follower.Tier
+                            ),
+                        Defence =
+                            CalculateEfficiency
+                            (
+                                follower.Characteristics.Defence,
+                                follower.Leadership,
+                                follower.Tier
+                            ),
+                        MinDamage =
+                            CalculateEfficiency
+                            (
+                                follower.Characteristics.MinDamage,
+                                follower.Leadership,
+                                follower.Tier
+                            ),
+                        MaxDamage =
+                            CalculateEfficiency
+                            (
+                                follower.Characteristics.MaxDamage,
+                                follower.Leadership,
+                                follower.Tier
+                            ),
+                        HitPoints =
+                            CalculateEfficiency
+                            (
+                                follower.Characteristics.HitPoints,
+                                follower.Leadership,
+                                follower.Tier
+                            ),
+                        Movement =
+                            CalculateEfficiency
+                            (
+                                follower.Characteristics.Movement,
+                                follower.Leadership,
+                                follower.Tier
+                            ),
+                        Initiative =
+                            CalculateEfficiency
+                            (
+                                follower.Characteristics.Initiative,
+                                follower.Leadership,
+                                follower.Tier
+                            ),
+                        Abilities =
+                            CalculateEfficiency
+                            (
+                                follower.Characteristics.Abilities,
+                                follower.Leadership,
+                                follower.Tier
+                            ),
                         Offense =
-                            (double)
-                            ((follower.Characteristics.MinDamage + follower.Characteristics.MaxDamage) / 2 *
-                            (1 + follower.Characteristics.Attack * 0.05) /
-                            follower.Leadership),
+                            CalculateEfficiency
+                            (
+                                new double[]
+                                {
+                                    follower.Characteristics.MinDamage,
+                                    follower.Characteristics.MaxDamage
+                                }.Average(),
+                                follower.Characteristics.Attack,
+                                0.05d,
+                                follower.Leadership,
+                                follower.Tier
+                            ),
                         Survivability =
-                            (double)
-                            (follower.Characteristics.HitPoints *
-                            (1 + follower.Characteristics.Defence * 0.05) /
-                            follower.Leadership),
+                            CalculateEfficiency
+                            (
+                                follower.Characteristics.HitPoints,
+                                follower.Characteristics.Defence,
+                                0.05d,
+                                follower.Leadership,
+                                follower.Tier
+                            ),
                         Rush =
-                            (double)
-                            (follower.Characteristics.Movement *
-                            (1 + follower.Characteristics.Initiative * 0.1) /
-                            follower.Leadership)
+                            CalculateEfficiency
+                            (
+                                follower.Characteristics.Movement,
+                                follower.Characteristics.Initiative,
+                                0.1d,
+                                follower.Leadership,
+                                follower.Tier
+                            )
                     }
                 };
             }
 
-            return new Dictionary<string, double>()
+            IEnumerable<Follower> mythical = creatures.Where(c => c.Tier == Rarity.Mythical);
+            IEnumerable<Follower> legendary = creatures.Where(c => c.Tier == Rarity.Legendary);
+            IEnumerable<Follower> veryRare = creatures.Where(c => c.Tier == Rarity.VeryRare);
+            IEnumerable<Follower> rare = creatures.Where(c => c.Tier == Rarity.Rare);
+            IEnumerable<Follower> standard = creatures.Where(c => c.Tier == Rarity.Standard);
+
+            return new Dictionary<string, double[]>()
             {
-                { "Attack", creatures.Max(c => c.Efficiency.Absolute.Attack) },
-                { "Defence", creatures.Max(c => c.Efficiency.Absolute.Defence) },
-                { "MinDamage", creatures.Max(c => c.Efficiency.Absolute.MinDamage) },
-                { "MaxDamage", creatures.Max(c => c.Efficiency.Absolute.MaxDamage) },
-                { "HitPoints", creatures.Max(c => c.Efficiency.Absolute.HitPoints) },
-                { "Movement", creatures.Max(c => c.Efficiency.Absolute.Movement) },
-                { "Initiative", creatures.Max(c => c.Efficiency.Absolute.Initiative) },
-                { "Abilities", creatures.Max(c => c.Efficiency.Absolute.Abilities) },
-                { "Offense", creatures.Max(c => c.Efficiency.Absolute.Offense) },
-                { "Survivability", creatures.Max(c => c.Efficiency.Absolute.Survivability) },
-                { "Rush", creatures.Max(c => c.Efficiency.Absolute.Rush) }
+                { 
+                    "Attack",
+                    new double[]
+                    {
+                        mythical.Max(c => c.Efficiency.Absolute.Attack),
+                        legendary.Max(c => c.Efficiency.Absolute.Attack),
+                        veryRare.Max(c => c.Efficiency.Absolute.Attack),
+                        rare.Max(c => c.Efficiency.Absolute.Attack),
+                        standard.Max(c => c.Efficiency.Absolute.Attack),
+                    }
+                },
+                { 
+                    "Defence",
+                    new double[]
+                    {
+                        mythical.Max(c => c.Efficiency.Absolute.Defence),
+                        legendary.Max(c => c.Efficiency.Absolute.Defence),
+                        veryRare.Max(c => c.Efficiency.Absolute.Defence),
+                        rare.Max(c => c.Efficiency.Absolute.Defence),
+                        standard.Max(c => c.Efficiency.Absolute.Defence),
+                    }
+                },
+                {
+                    "MinDamage",
+                    new double[]
+                    {
+                        mythical.Max(c => c.Efficiency.Absolute.MinDamage),
+                        legendary.Max(c => c.Efficiency.Absolute.MinDamage),
+                        veryRare.Max(c => c.Efficiency.Absolute.MinDamage),
+                        rare.Max(c => c.Efficiency.Absolute.MinDamage),
+                        standard.Max(c => c.Efficiency.Absolute.MinDamage),
+                    }
+                },
+                {
+                    "MaxDamage",
+                    new double[]
+                    {
+                        mythical.Max(c => c.Efficiency.Absolute.MaxDamage),
+                        legendary.Max(c => c.Efficiency.Absolute.MaxDamage),
+                        veryRare.Max(c => c.Efficiency.Absolute.MaxDamage),
+                        rare.Max(c => c.Efficiency.Absolute.MaxDamage),
+                        standard.Max(c => c.Efficiency.Absolute.MaxDamage),
+                    }
+                },
+                {
+                    "HitPoints",
+                    new double[]
+                    {
+                        mythical.Max(c => c.Efficiency.Absolute.HitPoints),
+                        legendary.Max(c => c.Efficiency.Absolute.HitPoints),
+                        veryRare.Max(c => c.Efficiency.Absolute.HitPoints),
+                        rare.Max(c => c.Efficiency.Absolute.HitPoints),
+                        standard.Max(c => c.Efficiency.Absolute.HitPoints),
+                    }
+                },
+                {
+                    "Movement",
+                    new double[]
+                    {
+                        mythical.Max(c => c.Efficiency.Absolute.Movement),
+                        legendary.Max(c => c.Efficiency.Absolute.Movement),
+                        veryRare.Max(c => c.Efficiency.Absolute.Movement),
+                        rare.Max(c => c.Efficiency.Absolute.Movement),
+                        standard.Max(c => c.Efficiency.Absolute.Movement),
+                    }
+                },
+                {
+                    "Initiative",
+                    new double[]
+                    {
+                        mythical.Max(c => c.Efficiency.Absolute.Initiative),
+                        legendary.Max(c => c.Efficiency.Absolute.Initiative),
+                        veryRare.Max(c => c.Efficiency.Absolute.Initiative),
+                        rare.Max(c => c.Efficiency.Absolute.Initiative),
+                        standard.Max(c => c.Efficiency.Absolute.Initiative),
+                    }
+                },
+                {
+                    "Abilities",
+                    new double[]
+                    {
+                        mythical.Max(c => c.Efficiency.Absolute.Abilities),
+                        legendary.Max(c => c.Efficiency.Absolute.Abilities),
+                        veryRare.Max(c => c.Efficiency.Absolute.Abilities),
+                        rare.Max(c => c.Efficiency.Absolute.Abilities),
+                        standard.Max(c => c.Efficiency.Absolute.Abilities),
+                    }
+                },
+                {
+                    "Offense",
+                    new double[]
+                    {
+                        mythical.Max(c => c.Efficiency.Absolute.Offense),
+                        legendary.Max(c => c.Efficiency.Absolute.Offense),
+                        veryRare.Max(c => c.Efficiency.Absolute.Offense),
+                        rare.Max(c => c.Efficiency.Absolute.Offense),
+                        standard.Max(c => c.Efficiency.Absolute.Offense),
+                    }
+                },
+                {
+                    "Survivability",
+                    new double[]
+                    {
+                        mythical.Max(c => c.Efficiency.Absolute.Survivability),
+                        legendary.Max(c => c.Efficiency.Absolute.Survivability),
+                        veryRare.Max(c => c.Efficiency.Absolute.Survivability),
+                        rare.Max(c => c.Efficiency.Absolute.Survivability),
+                        standard.Max(c => c.Efficiency.Absolute.Survivability),
+                    }
+                },
+                {
+                    "Rush",
+                    new double[]
+                    {
+                        mythical.Max(c => c.Efficiency.Absolute.Rush),
+                        legendary.Max(c => c.Efficiency.Absolute.Rush),
+                        veryRare.Max(c => c.Efficiency.Absolute.Rush),
+                        rare.Max(c => c.Efficiency.Absolute.Rush),
+                        standard.Max(c => c.Efficiency.Absolute.Rush),
+                    }
+                }
             };
         }
 
-        private void CalculateRelativeEfficiency(IList<Follower> creatures, IDictionary<string, double> max)
+        private void GetRelativeEfficiency(IList<Follower> creatures, IDictionary<string, double[]> max)
         {
             foreach (var follower in creatures)
             {
                 follower.Efficiency.Relative = new RelativeRating()
                 {
-                    Attack = follower.Efficiency.Absolute.Attack / max["Attack"] * 100,
-                    Defence = follower.Efficiency.Absolute.Defence / max["Defence"] * 100,
-                    MinDamage = follower.Efficiency.Absolute.MinDamage / max["MinDamage"] * 100,
-                    MaxDamage = follower.Efficiency.Absolute.MaxDamage / max["MaxDamage"] * 100,
-                    HitPoints = follower.Efficiency.Absolute.HitPoints / max["HitPoints"] * 100,
-                    Movement = follower.Efficiency.Absolute.Movement / max["Movement"] * 100,
-                    Initiative = follower.Efficiency.Absolute.Initiative / max["Initiative"] * 100,
-                    Abilities = follower.Efficiency.Absolute.Abilities / max["Abilities"] * 100,
-                    Offense = follower.Efficiency.Absolute.Offense / max["Offense"] * 100,
-                    Survivability = follower.Efficiency.Absolute.Survivability / max["Survivability"] * 100,
-                    Rush = follower.Efficiency.Absolute.Rush / max["Rush"] * 100
+                    Attack =
+                        follower.Efficiency.Absolute.Attack / max["Attack"][(int)follower.Tier] * 100,
+                    Defence =
+                        follower.Efficiency.Absolute.Defence / max["Defence"][(int)follower.Tier] * 100,
+                    MinDamage =
+                        follower.Efficiency.Absolute.MinDamage / max["MinDamage"][(int)follower.Tier] * 100,
+                    MaxDamage =
+                        follower.Efficiency.Absolute.MaxDamage / max["MaxDamage"][(int)follower.Tier] * 100,
+                    HitPoints =
+                        follower.Efficiency.Absolute.HitPoints / max["HitPoints"][(int)follower.Tier] * 100,
+                    Movement =
+                        follower.Efficiency.Absolute.Movement / max["Movement"][(int)follower.Tier] * 100,
+                    Initiative =
+                        follower.Efficiency.Absolute.Initiative / max["Initiative"][(int)follower.Tier] * 100,
+                    Abilities =
+                        follower.Efficiency.Absolute.Abilities / max["Abilities"][(int)follower.Tier] * 100,
+                    Offense =
+                        follower.Efficiency.Absolute.Offense / max["Offense"][(int)follower.Tier] * 100,
+                    Survivability =
+                        follower.Efficiency.Absolute.Survivability / max["Survivability"][(int)follower.Tier] * 100,
+                    Rush =
+                        follower.Efficiency.Absolute.Rush / max["Rush"][(int)follower.Tier] * 100
                 };
             }
         }
 
-        private void CalculateFinalScore(IList<Follower> creatures)
+        private void GetFinalScore(IList<Follower> creatures)
         {
             foreach (var follower in creatures)
             {
@@ -126,11 +372,16 @@ namespace HWM.Parser
             string json = File.ReadAllText($@"{_jsonFolder}\LGCreatures.json");
             List<Follower> creatureList = JsonSerializer.Deserialize<List<Follower>>(json);
 
-            IDictionary<string, double> maxEfficiency = CalculateAbsoluteEfficiency(creatureList);
-            CalculateRelativeEfficiency(creatureList, maxEfficiency);
-            CalculateFinalScore(creatureList);
+            IDictionary<string, double[]> maxEfficiency = GetAbsoluteEfficiency(creatureList);
+            GetRelativeEfficiency(creatureList, maxEfficiency);
+            GetFinalScore(creatureList);
 
-            FileStoreHelper.SaveJsonFile(creatureList, $@"{_jsonFolder}\LGCreatures_ext.json");
+            IEnumerable<Follower> followers = creatureList.OrderByDescending(c => c.Efficiency.Score.Overall)
+                                                    .ThenBy(c => c.Tier)
+                                                    .ThenBy(c => c.DisplayName)
+                                                    .ToList();
+
+            FileStoreHelper.SaveJsonFile(followers, $@"{_jsonFolder}\LGCreatures_ext.json");
         }
     }
 }

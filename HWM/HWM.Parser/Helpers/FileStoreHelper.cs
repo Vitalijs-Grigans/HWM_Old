@@ -9,7 +9,7 @@ namespace HWM.Parser.Helpers
 {
     public static class FileStoreHelper
     {
-        public static void SaveJsonFile(IList<Follower> data, string path)
+        public static void SaveJsonFile(IEnumerable<Follower> data, string path)
         {
             string json = JsonConvert.SerializeObject(data, Formatting.Indented);
 

@@ -4,6 +4,9 @@ namespace HWM.Parser.Entities.LeaderGuild
 {
     public enum Rarity
     {
+        [Description("None")]
+        None = -1,
+        
         [Description("Mythical")]
         Mythical,
 

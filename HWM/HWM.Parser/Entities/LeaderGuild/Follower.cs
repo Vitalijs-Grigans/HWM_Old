@@ -5,7 +5,9 @@ namespace HWM.Parser.Entities.LeaderGuild
 {
     public class Follower : CreatureInfo, IIdentity
     {
-        public string Tier { get; set; }
+        public Rarity Tier { get; set; }
+
+        public string DisplayTier { get; set; }
 
         public int Leadership { get; set; }
 
