@@ -45,6 +45,7 @@ namespace HWM.Parser.Mappers
             { "thiefmage", "Воры-колдуны" },
             { "exile", "Маги-изгнанники" },
             { "wendigoup", "Древние вендиго" },
+            { "snowwolfup", "Полярные волки" },
             { "assida", "Ассиды" },
             { "shootpirateup", "Флибустьеры" },
             { "diamondgolem", "Алмазные големы" },
