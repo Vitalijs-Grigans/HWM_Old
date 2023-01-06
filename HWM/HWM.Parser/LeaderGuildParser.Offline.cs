@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 
 using HWM.Parser.Entities.LeaderGuild;
 using HWM.Parser.Helpers;
@@ -67,7 +65,7 @@ namespace HWM.Parser
             return AssignTierModifier(efficiency, tier);
         }
         
-        private IDictionary<string, double[]> GetAbsoluteEfficiency(IList<Follower> creatures)
+        private IDictionary<string, double[]> GetAbsoluteEfficiency(IEnumerable<Follower> creatures)
         {
             foreach (var follower in creatures)
             {
@@ -298,7 +296,7 @@ namespace HWM.Parser
             };
         }
 
-        private void GetRelativeEfficiency(IList<Follower> creatures, IDictionary<string, double[]> max)
+        private void GetRelativeEfficiency(IEnumerable<Follower> creatures, IDictionary<string, double[]> max)
         {
             foreach (var follower in creatures)
             {
@@ -330,11 +328,11 @@ namespace HWM.Parser
             }
         }
 
-        private void GetFinalScore(IList<Follower> creatures)
+        private void GetFinalScore(IEnumerable<Follower> creatures)
         {
             foreach (var follower in creatures)
             {
-                IList<double> efficiencyStore = new List<double>()
+                IEnumerable<double> efficiencyStore = new List<double>()
                 {
                     follower.Efficiency.Relative.Attack,
                     follower.Efficiency.Relative.Defence,
@@ -349,39 +347,36 @@ namespace HWM.Parser
                     follower.Efficiency.Relative.Rush
                 };
 
-                follower.Efficiency.Score = new ScoreRating()
-                {
-                    Attack = (int)Math.Round(follower.Efficiency.Relative.Attack),
-                    Defence = (int)Math.Round(follower.Efficiency.Relative.Defence),
-                    MinDamage = (int)Math.Round(follower.Efficiency.Relative.MinDamage),
-                    MaxDamage = (int)Math.Round(follower.Efficiency.Relative.MaxDamage),
-                    HitPoints = (int)Math.Round(follower.Efficiency.Relative.HitPoints),
-                    Movement = (int)Math.Round(follower.Efficiency.Relative.Movement),
-                    Initiative = (int)Math.Round(follower.Efficiency.Relative.Initiative),
-                    Abilities = (int)Math.Round(follower.Efficiency.Relative.Abilities),
-                    Offense = (int)Math.Round(follower.Efficiency.Relative.Offense),
-                    Survivability = (int)Math.Round(follower.Efficiency.Relative.Survivability),
-                    Rush = (int)Math.Round(follower.Efficiency.Relative.Rush),
-                    Overall = (int)Math.Round(efficiencyStore.Average())
-                };
+                follower.Efficiency.Attack = (int)Math.Round(follower.Efficiency.Relative.Attack);
+                follower.Efficiency.Defence = (int)Math.Round(follower.Efficiency.Relative.Defence);
+                follower.Efficiency.MinDamage = (int)Math.Round(follower.Efficiency.Relative.MinDamage);
+                follower.Efficiency.MaxDamage = (int)Math.Round(follower.Efficiency.Relative.MaxDamage);
+                follower.Efficiency.HitPoints = (int)Math.Round(follower.Efficiency.Relative.HitPoints);
+                follower.Efficiency.Movement = (int)Math.Round(follower.Efficiency.Relative.Movement);
+                follower.Efficiency.Initiative = (int)Math.Round(follower.Efficiency.Relative.Initiative);
+                follower.Efficiency.Abilities = (int)Math.Round(follower.Efficiency.Relative.Abilities);
+                follower.Efficiency.Offense = (int)Math.Round(follower.Efficiency.Relative.Offense);
+                follower.Efficiency.Survivability = (int)Math.Round(follower.Efficiency.Relative.Survivability);
+                follower.Efficiency.Rush = (int)Math.Round(follower.Efficiency.Relative.Rush);
+                follower.Efficiency.Overall = (int)Math.Round(efficiencyStore.Average());
             }
         }
 
         public void ProcessData()
         {
-            string json = File.ReadAllText($@"{_jsonFolder}\LGCreatures.json");
-            List<Follower> creatureList = JsonSerializer.Deserialize<List<Follower>>(json);
+            IEnumerable<Follower> creatureList =
+                ExternalServices.Instance.LoadJson($@"{_jsonFolder}\LGCreatures.json");
 
             IDictionary<string, double[]> maxEfficiency = GetAbsoluteEfficiency(creatureList);
             GetRelativeEfficiency(creatureList, maxEfficiency);
             GetFinalScore(creatureList);
 
-            IEnumerable<Follower> followers = creatureList.OrderByDescending(c => c.Efficiency.Score.Overall)
+            IEnumerable<Follower> followers = creatureList.OrderByDescending(c => c.Efficiency.Overall)
                                                     .ThenBy(c => c.Tier)
                                                     .ThenBy(c => c.DisplayName)
                                                     .ToList();
 
-            FileStoreHelper.SaveJsonFile(followers, $@"{_jsonFolder}\LGCreatures_ext.json");
+            ExternalServices.Instance.SaveJson(followers, $@"{_jsonFolder}\LGCreatures_ext.json");
         }
     }
 }

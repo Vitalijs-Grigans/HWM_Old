@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
+using System.Runtime.Versioning;
 
 using HtmlAgilityPack;
 
@@ -13,29 +13,17 @@ using HWM.Parser.Entities.LeaderGuild;
 using HWM.Parser.Extensions;
 using HWM.Parser.Mappers;
 
+
 namespace HWM.Parser
 {
+    [SupportedOSPlatform("windows")]
     public partial class LeaderGuildParser : IParser
     {
         private string _endpoint;
         private string _jsonFolder;
         private string _imageFolder;
 
-        private HtmlDocument GetLocalHtml(string url)
-        {
-            var doc = new HtmlDocument();
-
-            using (WebClient client = new WebClient())
-            {
-                string html = client.DownloadString(url);
-
-                doc.LoadHtml(html);
-            }
-
-            return doc;
-        }
-
-        private Rarity GetFollowerRarity(string colorHex)
+        private static Rarity GetFollowerRarity(string colorHex)
         {
             Rarity rarity = default(Rarity);
 
@@ -80,16 +68,6 @@ namespace HWM.Parser
 
             return returnVal;
         }
-
-        private void DownloadFileFromUrl(string url, string fileName)
-        {
-            using (var client = new WebClient())
-            {
-                client.DownloadFile(new Uri(url), fileName);
-            }
-        }
-
-        public LeaderGuildParser() { }
         
         public LeaderGuildParser(string endpoint, string jsonFolder, string imageFolder)
         {
@@ -100,8 +78,7 @@ namespace HWM.Parser
         
         public void CollectData()
         {
-            HtmlDocument htmlDoc = GetLocalHtml(_endpoint);
-
+            HtmlDocument htmlDoc = ExternalServices.Instance.GetHtml(_endpoint);
             HtmlNode body = htmlDoc.DocumentNode.SelectSingleNode("//body");
             HtmlNodeCollection creatureNodes = 
                 body.SelectNodes("//div[@class='fcont']//div[@class='cre_mon_parent']/a");
@@ -124,7 +101,7 @@ namespace HWM.Parser
                 string file = $"{name}.png";
                 string cachedImage = Directory.GetFiles(_imageFolder, file).FirstOrDefault();
 
-                HtmlDocument creatureDoc = GetLocalHtml(url);
+                HtmlDocument creatureDoc = ExternalServices.Instance.GetHtml(url);
                 HtmlNode creatureBody = creatureDoc.DocumentNode.SelectSingleNode("//body");
                 HtmlNodeCollection creatureStats = 
                     creatureBody.SelectNodes("//div[@class='scroll_content_half']//div");
@@ -152,7 +129,7 @@ namespace HWM.Parser
                         HitPoints = ConvertToNumber(creatureStats[6].InnerText),
                         Initiative = ConvertToNumber(creatureStats[7].InnerText),
                         Movement = ConvertToNumber(creatureStats[8].InnerText),
-                        Abilities = (creatureSkills != null) ? creatureSkills.Count : 0
+                        Abilities = creatureSkills?.Count ?? 0,
                     },
                     Tier = tier,
                     DisplayTier = tier.GetDisplayName(),
@@ -163,13 +140,13 @@ namespace HWM.Parser
 
                 if (cachedImage == null)
                 {
-                    DownloadFileFromUrl(imageUrl, $@"{_imageFolder}\{file}");
+                    ExternalServices.Instance.DownloadImage(imageUrl, $@"{_imageFolder}\{file}");
                 }
 
                 Console.WriteLine($"Processed {id} out of {creatureNodes.Count}");
             }
 
-            FileStoreHelper.SaveJsonFile(creatureList, $@"{_jsonFolder}\LGCreatures.json");
+            ExternalServices.Instance.SaveJson(creatureList, $@"{_jsonFolder}\LGCreatures.json");
         }
     }
 }

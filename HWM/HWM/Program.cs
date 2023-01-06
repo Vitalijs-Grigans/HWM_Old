@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 
 using Microsoft.Extensions.Configuration;
 
@@ -6,10 +7,12 @@ using HWM.Parser;
 
 namespace HWM
 {
-    class Program
+    public class Program
     {
         static void Main(string[] args)
         {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            
             IConfigurationBuilder builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json");

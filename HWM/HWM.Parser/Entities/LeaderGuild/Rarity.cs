@@ -4,22 +4,22 @@ namespace HWM.Parser.Entities.LeaderGuild
 {
     public enum Rarity
     {
-        [Description("None")]
+        [Description("Пусто")]
         None = -1,
         
-        [Description("Mythical")]
+        [Description("Мифический")]
         Mythical,
 
-        [Description("Legendary")]
+        [Description("Легендарный")]
         Legendary,
 
-        [Description("Very Rare")]
+        [Description("Очень редкий")]
         VeryRare,
 
-        [Description("Rare")]
+        [Description("Редкий")]
         Rare,
 
-        [Description("Standard")]
+        [Description("Обычный")]
         Standard
     }
 }
