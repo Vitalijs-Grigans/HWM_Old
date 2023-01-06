@@ -4,8 +4,8 @@ namespace HWM.Parser.Interfaces
 {
     public interface IParser
     {
-        public Task CollectData();
+        public Task CollectDataAsync();
 
-        public Task ProcessData();
+        public Task ProcessDataAsync();
     }
 }

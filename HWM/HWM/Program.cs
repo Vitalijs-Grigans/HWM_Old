@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
@@ -6,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 
 using HWM.Parser;
-
 
 namespace HWM
 {
@@ -17,21 +17,26 @@ namespace HWM
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             
-            IConfigurationBuilder builder = new ConfigurationBuilder()
+            IConfiguration config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json");
+                .AddJsonFile("appsettings.json")
+                .AddEnvironmentVariables()
+                .Build();
 
-            IConfigurationRoot config = builder.Build();
+            var settings = config.GetRequiredSection("Settings").Get<Settings>();
 
             var parser = new LeaderGuildParser
             (
-                config.GetSection("LeaderGuildEndpoint").Value,
-                config.GetSection("ParseResultsFolder").Value,
-                config.GetSection("CreatureImageFolder").Value
+                new Dictionary<string, string>()
+                {
+                    { "LeaderGuildEndpoint", settings.LeaderGuildEndpoint },
+                    { "ParseResultsFolder", settings.ParseResultsFolder },
+                    { "CreatureImageFolder", settings.CreatureImageFolder },
+                }
             );
 
-            await parser.CollectData();
-            await parser.ProcessData();
+            await parser.CollectDataAsync();
+            await parser.ProcessDataAsync();
         }
     }
 }

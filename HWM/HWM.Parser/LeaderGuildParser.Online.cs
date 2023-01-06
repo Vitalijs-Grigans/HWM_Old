@@ -69,14 +69,14 @@ namespace HWM.Parser
             return returnVal;
         }
         
-        public LeaderGuildParser(string endpoint, string jsonFolder, string imageFolder)
+        public LeaderGuildParser(IDictionary<string, string> config)
         {
-            _endpoint = endpoint;
-            _jsonFolder = jsonFolder;
-            _imageFolder = imageFolder;
+            _endpoint = config["LeaderGuildEndpoint"];
+            _jsonFolder = config["ParseResultsFolder"];
+            _imageFolder = config["CreatureImageFolder"];
         }
         
-        public async Task CollectData()
+        public async Task CollectDataAsync()
         {
             HtmlDocument htmlDoc = await ExternalServices.Instance.GetHtmlAsync(_endpoint);
             HtmlNode body = htmlDoc.DocumentNode.SelectSingleNode("//body");

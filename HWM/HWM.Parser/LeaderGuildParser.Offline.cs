@@ -363,7 +363,7 @@ namespace HWM.Parser
             }
         }
 
-        public async Task ProcessData()
+        public async Task ProcessDataAsync()
         {
             IEnumerable<Follower> creatureList =
                 await ExternalServices.Instance.LoadJsonAsync($@"{_jsonFolder}\LGCreatures.json");
