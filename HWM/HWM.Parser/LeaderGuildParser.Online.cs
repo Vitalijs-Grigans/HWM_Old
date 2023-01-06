@@ -12,7 +12,6 @@ using HWM.Parser.Interfaces;
 using HWM.Parser.Entities.Creature;
 using HWM.Parser.Entities.LeaderGuild;
 using HWM.Parser.Extensions;
-using HWM.Parser.Mappers;
 
 namespace HWM.Parser
 {
@@ -94,7 +93,7 @@ namespace HWM.Parser
                     anchor.ParentNode.ParentNode.ParentNode.Attributes["style"].Value;
                 string url = anchor.Attributes["href"].Value;
                 string name = url.Split('=').LastOrDefault();
-                string displayName = CreatureMapper.Map(name);
+                string displayName = anchor.Attributes["title"].Value;
                 string imageUrl = anchor.ChildNodes.LastOrDefault().Attributes["src"].Value;
                 string file = $"{name}.png";
                 string cachedImage = Directory.GetFiles(_imageFolder, file).FirstOrDefault();
@@ -112,7 +111,7 @@ namespace HWM.Parser
                     Id = id++,
                     Url = url,
                     Name = name,
-                    DisplayName = CreatureMapper.Map(name),
+                    DisplayName = displayName,
                     Characteristics = new CreatureStats()
                     {
                         Attack = ConvertToNumber(creatureStats[0].InnerText),
