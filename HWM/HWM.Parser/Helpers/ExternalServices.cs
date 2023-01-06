@@ -31,11 +31,11 @@ namespace HWM.Parser.Helpers
             } 
         }
 
-        public HtmlDocument GetHtml(string url)
+        public async Task<HtmlDocument> GetHtmlAsync(string url)
         {
             var doc = new HtmlDocument();
             var client = new HttpClient();
-            byte[] bytes = client.GetByteArrayAsync(url).Result;
+            byte[] bytes = await client.GetByteArrayAsync(url);
             Encoding encoding = Encoding.GetEncoding("windows-1251");
             string html = encoding.GetString(bytes, 0, bytes.Length);
 
@@ -44,30 +44,29 @@ namespace HWM.Parser.Helpers
             return doc;
         }
 
-        public void DownloadImage(string url, string fileName)
+        public async Task DownloadImageAsync(string url, string fileName)
         {
             var client = new HttpClient();
-            var response = client.GetAsync(url).Result;
+            var response = await client.GetAsync(url);
 
             response.EnsureSuccessStatusCode();
 
-            byte[] bytes = response.Content.ReadAsByteArrayAsync().Result;
+            byte[] bytes = await response.Content.ReadAsByteArrayAsync();
             Image image = Image.FromStream(new MemoryStream(bytes));
 
             image.Save(fileName);
         }
 
-        public void SaveJson(IEnumerable<Follower> data, string path)
+        public async Task SaveJsonAsync(IEnumerable<Follower> data, string path)
         {
             string json = JsonConvert.SerializeObject(data, Formatting.Indented);
-            Task task = new Task(() => File.WriteAllTextAsync(path, json));
 
-            task.RunSynchronously();
+            await File.WriteAllTextAsync(path, json);
         }
 
-        public IEnumerable<Follower> LoadJson(string path)
+        public async Task<IEnumerable<Follower>> LoadJsonAsync(string path)
         {
-            string json = File.ReadAllTextAsync(path).Result;
+            string json = await File.ReadAllTextAsync(path);
 
             return JsonConvert.DeserializeObject<IEnumerable<Follower>>(json);
         }

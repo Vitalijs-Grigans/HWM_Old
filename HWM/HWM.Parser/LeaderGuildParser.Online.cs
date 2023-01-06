@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
+using System.Threading.Tasks;
 
 using HtmlAgilityPack;
 
@@ -12,7 +13,6 @@ using HWM.Parser.Entities.Creature;
 using HWM.Parser.Entities.LeaderGuild;
 using HWM.Parser.Extensions;
 using HWM.Parser.Mappers;
-
 
 namespace HWM.Parser
 {
@@ -76,13 +76,12 @@ namespace HWM.Parser
             _imageFolder = imageFolder;
         }
         
-        public void CollectData()
+        public async Task CollectData()
         {
-            HtmlDocument htmlDoc = ExternalServices.Instance.GetHtml(_endpoint);
+            HtmlDocument htmlDoc = await ExternalServices.Instance.GetHtmlAsync(_endpoint);
             HtmlNode body = htmlDoc.DocumentNode.SelectSingleNode("//body");
             HtmlNodeCollection creatureNodes = 
                 body.SelectNodes("//div[@class='fcont']//div[@class='cre_mon_parent']/a");
-
             IList<Follower> creatureList = new List<Follower>();
 
             int id = 0;
@@ -96,18 +95,15 @@ namespace HWM.Parser
                 string url = anchor.Attributes["href"].Value;
                 string name = url.Split('=').LastOrDefault();
                 string displayName = CreatureMapper.Map(name);
-
                 string imageUrl = anchor.ChildNodes.LastOrDefault().Attributes["src"].Value;
                 string file = $"{name}.png";
                 string cachedImage = Directory.GetFiles(_imageFolder, file).FirstOrDefault();
-
-                HtmlDocument creatureDoc = ExternalServices.Instance.GetHtml(url);
+                HtmlDocument creatureDoc = await ExternalServices.Instance.GetHtmlAsync(url);
                 HtmlNode creatureBody = creatureDoc.DocumentNode.SelectSingleNode("//body");
                 HtmlNodeCollection creatureStats = 
                     creatureBody.SelectNodes("//div[@class='scroll_content_half']//div");
                 HtmlNodeCollection creatureSkills =
                     creatureBody.SelectNodes("//div[@class='army_info_skills']/span");
-
                 string[] damageParts = creatureStats[4].InnerText.Split('-');
                 Rarity tier = GetFollowerRarity(backgroundStyle.Split(':').LastOrDefault());
 
@@ -140,13 +136,13 @@ namespace HWM.Parser
 
                 if (cachedImage == null)
                 {
-                    ExternalServices.Instance.DownloadImage(imageUrl, $@"{_imageFolder}\{file}");
+                    await ExternalServices.Instance.DownloadImageAsync(imageUrl, $@"{_imageFolder}\{file}");
                 }
 
                 Console.WriteLine($"Processed {id} out of {creatureNodes.Count}");
             }
 
-            ExternalServices.Instance.SaveJson(creatureList, $@"{_jsonFolder}\LGCreatures.json");
+            await ExternalServices.Instance.SaveJsonAsync(creatureList, $@"{_jsonFolder}\LGCreatures.json");
         }
     }
 }

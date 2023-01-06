@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using HWM.Parser.Entities.LeaderGuild;
 using HWM.Parser.Helpers;
@@ -362,10 +363,10 @@ namespace HWM.Parser
             }
         }
 
-        public void ProcessData()
+        public async Task ProcessData()
         {
             IEnumerable<Follower> creatureList =
-                ExternalServices.Instance.LoadJson($@"{_jsonFolder}\LGCreatures.json");
+                await ExternalServices.Instance.LoadJsonAsync($@"{_jsonFolder}\LGCreatures.json");
 
             IDictionary<string, double[]> maxEfficiency = GetAbsoluteEfficiency(creatureList);
             GetRelativeEfficiency(creatureList, maxEfficiency);
@@ -376,7 +377,7 @@ namespace HWM.Parser
                                                     .ThenBy(c => c.DisplayName)
                                                     .ToList();
 
-            ExternalServices.Instance.SaveJson(followers, $@"{_jsonFolder}\LGCreatures_ext.json");
+            await ExternalServices.Instance.SaveJsonAsync(followers, $@"{_jsonFolder}\LGCreatures_ext.json");
         }
     }
 }

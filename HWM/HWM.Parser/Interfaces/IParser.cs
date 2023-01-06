@@ -1,9 +1,11 @@
-﻿namespace HWM.Parser.Interfaces
+﻿using System.Threading.Tasks;
+
+namespace HWM.Parser.Interfaces
 {
     public interface IParser
     {
-        public void CollectData();
+        public Task CollectData();
 
-        public void ProcessData();
+        public Task ProcessData();
     }
 }

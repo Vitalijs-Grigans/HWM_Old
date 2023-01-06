@@ -1,15 +1,19 @@
 ﻿using System.IO;
+using System.Runtime.Versioning;
 using System.Text;
+using System.Threading.Tasks;
 
 using Microsoft.Extensions.Configuration;
 
 using HWM.Parser;
 
+
 namespace HWM
 {
+    [SupportedOSPlatform("windows")]
     public class Program
     {
-        static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             
@@ -26,8 +30,8 @@ namespace HWM
                 config.GetSection("CreatureImageFolder").Value
             );
 
-            parser.CollectData();
-            parser.ProcessData();
+            await parser.CollectData();
+            await parser.ProcessData();
         }
     }
 }
