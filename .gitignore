@@ -439,5 +439,8 @@ temp/
 playground/dist
 playground/storybook-static
 
+# External library directories
+**/lib/
+
 # Publish folders
 WebApp/
