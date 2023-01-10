@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HWM", "HWM\HWM.csproj", "{4
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HWM.Parser", "HWM.Parser\HWM.Parser.csproj", "{21A38402-4216-4723-B202-4D663F601998}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HWM.WebApp", "HWM.WebApp\HWM.WebApp.csproj", "{D6F114C5-7935-4CEB-8850-54180ADD75E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{21A38402-4216-4723-B202-4D663F601998}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21A38402-4216-4723-B202-4D663F601998}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21A38402-4216-4723-B202-4D663F601998}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6F114C5-7935-4CEB-8850-54180ADD75E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6F114C5-7935-4CEB-8850-54180ADD75E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6F114C5-7935-4CEB-8850-54180ADD75E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6F114C5-7935-4CEB-8850-54180ADD75E8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

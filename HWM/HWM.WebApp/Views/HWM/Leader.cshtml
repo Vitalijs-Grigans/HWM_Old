@@ -1,0 +1,60 @@
+﻿@{
+    ViewData["Title"] = "Гильдия Лидеров - Рейтинг последователей";
+}
+
+<h1 class="text-center display-6">Рейтинг последователей</h1>
+
+<div class="table-responsive table-fixed-container">
+    <table class="table table-sm table-striped table-hover table-info">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>№</th>
+                <th>Существо</th>
+                <th>Редкость</th>
+                <th>Лидерство</th>
+                <th>Общий рейтинг</th>
+                <th>Нападение</th>
+                <th>Защита</th>
+                <th>Мин. урон</th>
+                <th>Макс. урон</th>
+                <th>Здоровье</th>
+                <th>Скорость</th>
+                <th>Инициатива</th>
+                <th>Способности</th>
+                <th>Атака</th>
+                <th>Живучесть</th>
+                <th>Штурм</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int i = 1;
+            }
+            @foreach (var follower in Model)
+            {
+                <tr>
+                    <td>@i</td>
+                    <td>@follower.Id</td>
+                    <td>@follower.DisplayName</td>
+                    <td>@follower.DisplayTier</td>
+                    <td>@follower.Leadership</td>
+                    <td><strong>@follower.Efficiency.Overall</strong></td>
+                    <td>@follower.Efficiency.Attack</td>
+                    <td>@follower.Efficiency.Defence</td>
+                    <td>@follower.Efficiency.MinDamage</td>
+                    <td>@follower.Efficiency.MaxDamage</td>
+                    <td>@follower.Efficiency.HitPoints</td>
+                    <td>@follower.Efficiency.Movement</td>
+                    <td>@follower.Efficiency.Initiative</td>
+                    <td>@follower.Efficiency.Abilities</td>
+                    <td>@follower.Efficiency.Offense</td>
+                    <td>@follower.Efficiency.Survivability</td>
+                    <td>@follower.Efficiency.Rush</td>
+                </tr>
+
+                i++;
+            }
+        </tbody>
+    </table>
+</div>
