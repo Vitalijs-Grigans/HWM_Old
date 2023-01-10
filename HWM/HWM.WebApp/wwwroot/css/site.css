@@ -21,6 +21,10 @@ body {
   margin-bottom: 60px;
 }
 
+main {
+    padding-top: 0.85em;
+}
+
 table {
     border-collapse: collapse;
     width: 100%;
@@ -30,22 +34,9 @@ table {
     overflow-y: scroll;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    height: 504px;
-    margin-top: 1.25em;
 }
 
 .table-fixed-container::-webkit-scrollbar {
     width: 0;
     height: 0;
 }
-
-.table-fixed-container thead th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-}
-
-/*.table-fixed-container tbody th {
-    position: sticky;
-    left: 0;
-}*/
