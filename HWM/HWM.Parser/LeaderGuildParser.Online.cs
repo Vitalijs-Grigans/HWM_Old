@@ -22,6 +22,7 @@ namespace HWM.Parser
         private string _jsonFolder;
         private string _imageFolder;
 
+        // Method to convert hex color rarity to enumerated 
         private static Rarity GetFollowerRarity(string colorHex)
         {
             Rarity rarity = default(Rarity);
@@ -51,9 +52,10 @@ namespace HWM.Parser
             return rarity;
         }
 
+        // Utility method to parse string data
         private int ConvertToNumber(string input, bool nullable = false) 
         {
-            int returnVal;
+            int returnVal = default;
 
             if (nullable)
             {
@@ -75,37 +77,62 @@ namespace HWM.Parser
             _imageFolder = config["CreatureImageFolder"];
         }
         
+        // Asynchronous method to fetch required data from external service
         public async Task CollectDataAsync()
         {
+            // Obtain creature links to external site by traversing DOM tree
             HtmlDocument htmlDoc = await ExternalServices.Instance.GetHtmlAsync(_endpoint);
             HtmlNode body = htmlDoc.DocumentNode.SelectSingleNode("//body");
             HtmlNodeCollection creatureNodes = 
                 body.SelectNodes("//div[@class='fcont']//div[@class='cre_mon_parent']/a");
-            IList<Follower> creatureList = new List<Follower>();
 
-            int id = 0;
+            IList<Follower> creatureList = new List<Follower>();
+            int id = default;
 
             foreach (var anchor in creatureNodes)
             {
                 Console.Clear();
                 
+                // Creature color background represented by hex code
                 string backgroundStyle =
                     anchor.ParentNode.ParentNode.ParentNode.Attributes["style"].Value;
+
+                // Url to creature details
                 string url = anchor.Attributes["href"].Value;
+
+                // Creature name used by system and display respectively
                 string name = url.Split('=').LastOrDefault();
                 string displayName = anchor.Attributes["title"].Value;
+
+                // Url to creature image
                 string imageUrl = anchor.ChildNodes.LastOrDefault().Attributes["src"].Value;
+
+                // Find creature image (if exists), otherwise - download it
                 string file = $"{name}.png";
                 string cachedImage = Directory.GetFiles(_imageFolder, file).FirstOrDefault();
+
+                if (cachedImage == null)
+                {
+                    await ExternalServices.Instance.DownloadImageAsync(imageUrl, $@"{_imageFolder}\{file}");
+                }
+
+                // Obtain creature characteristics by traversing DOM tree
                 HtmlDocument creatureDoc = await ExternalServices.Instance.GetHtmlAsync(url);
                 HtmlNode creatureBody = creatureDoc.DocumentNode.SelectSingleNode("//body");
+
+                // Find creature stats and abilities respectively
                 HtmlNodeCollection creatureStats = 
                     creatureBody.SelectNodes("//div[@class='scroll_content_half']//div");
                 HtmlNodeCollection creatureSkills =
                     creatureBody.SelectNodes("//div[@class='army_info_skills']/span");
+
+                // Divide creature damage section into min and max parts
                 string[] damageParts = creatureStats[4].InnerText.Split('-');
+
+                // Get creature rank to enumerated value
                 Rarity tier = GetFollowerRarity(backgroundStyle.Split(':').LastOrDefault());
 
+                // Save creature info and characteristics and add to collection
                 var follower = new Follower()
                 {
                     Id = id++,
@@ -133,14 +160,11 @@ namespace HWM.Parser
 
                 creatureList.Add(follower);
 
-                if (cachedImage == null)
-                {
-                    await ExternalServices.Instance.DownloadImageAsync(imageUrl, $@"{_imageFolder}\{file}");
-                }
-
+                // Display parse progress info
                 Console.WriteLine($"Processed {id} out of {creatureNodes.Count}");
             }
 
+            // Store creature data into JSON file
             await ExternalServices.Instance.SaveJsonAsync(creatureList, $@"{_jsonFolder}\LGCreatures.json");
         }
     }

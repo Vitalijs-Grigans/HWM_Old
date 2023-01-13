@@ -15,6 +15,7 @@ namespace HWM
     {
         public static async Task Main(string[] args)
         {
+            // Apply and build configuration for instance
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             
             IConfiguration config = new ConfigurationBuilder()
@@ -23,8 +24,10 @@ namespace HWM
                 .AddEnvironmentVariables()
                 .Build();
 
+            // Load settings to named object from appsettings.json
             var settings = config.GetRequiredSection("Settings").Get<Settings>();
 
+            // Initialize parser session
             var parser = new LeaderGuildParser
             (
                 new Dictionary<string, string>()
@@ -35,7 +38,10 @@ namespace HWM
                 }
             );
 
+            // Execute data fetching part
             await parser.CollectDataAsync();
+
+            // Execute calculation part
             await parser.ProcessDataAsync();
         }
     }

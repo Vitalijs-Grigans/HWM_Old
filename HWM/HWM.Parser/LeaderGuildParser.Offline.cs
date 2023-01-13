@@ -11,10 +11,12 @@ namespace HWM.Parser
 {
     public partial class LeaderGuildParser : IParser
     { 
+        // Method for applying bonus for strongest tier creatures 
         private double AssignTierModifier(double value, Rarity tier)
         {
             double result = default(double);
             
+            // Apply bonus based on creature tier
             switch (tier)
             {
                 case Rarity.Mythical:
@@ -44,6 +46,7 @@ namespace HWM.Parser
             return result;
         }
         
+        //Method 1 to calculate creature absolute efficiency for allsimple characteristics
         private double CalculateEfficiency(double absoluteStatValue, int leadership, Rarity tier)
         {
             double efficiency = absoluteStatValue / leadership;
@@ -51,6 +54,7 @@ namespace HWM.Parser
             return AssignTierModifier(efficiency, tier);
         }
 
+        //Method 2 to calculate creature absolute efficiency for all complex characteristics
         private double CalculateEfficiency
         (
             double baseStatValue,
@@ -65,7 +69,8 @@ namespace HWM.Parser
             
             return AssignTierModifier(efficiency, tier);
         }
-        
+
+        // Method for calculating creature raw efficiency for all characteristics
         private IDictionary<string, double[]> GetAbsoluteEfficiency(IEnumerable<Follower> creatures)
         {
             foreach (var follower in creatures)
@@ -165,12 +170,14 @@ namespace HWM.Parser
                 };
             }
 
+            // Filter creatures by tier type
             IEnumerable<Follower> mythical = creatures.Where(c => c.Tier == Rarity.Mythical);
             IEnumerable<Follower> legendary = creatures.Where(c => c.Tier == Rarity.Legendary);
             IEnumerable<Follower> veryRare = creatures.Where(c => c.Tier == Rarity.VeryRare);
             IEnumerable<Follower> rare = creatures.Where(c => c.Tier == Rarity.Rare);
             IEnumerable<Follower> standard = creatures.Where(c => c.Tier == Rarity.Standard);
 
+            // Extract best efficiency results for each characteristics and tier type
             return new Dictionary<string, double[]>()
             {
                 { 
@@ -297,6 +304,7 @@ namespace HWM.Parser
             };
         }
 
+        // Method for calculating creature efficiency based on best value and tier type
         private void GetRelativeEfficiency(IEnumerable<Follower> creatures, IDictionary<string, double[]> max)
         {
             foreach (var follower in creatures)
@@ -329,6 +337,7 @@ namespace HWM.Parser
             }
         }
 
+        // Method for calculating creature overall and each characteristics rating 
         private void GetFinalScore(IEnumerable<Follower> creatures)
         {
             foreach (var follower in creatures)
@@ -365,18 +374,26 @@ namespace HWM.Parser
 
         public async Task ProcessDataAsync()
         {
+            // Load JSON file into existing object representation
             IEnumerable<Follower> creatureList =
                 await ExternalServices.Instance.LoadJsonAsync($@"{_jsonFolder}\LGCreatures.json");
 
+            // Get creature raw efficiency for each characteristics
             IDictionary<string, double[]> maxEfficiency = GetAbsoluteEfficiency(creatureList);
+
+            // Get creature efficiency against best value for each tier type
             GetRelativeEfficiency(creatureList, maxEfficiency);
+
+            // Get creature overall and each characteristics rating 
             GetFinalScore(creatureList);
 
+            // Apply ordering to collection
             IEnumerable<Follower> followers = creatureList.OrderByDescending(c => c.Efficiency.Overall)
                                                     .ThenBy(c => c.Tier)
                                                     .ThenBy(c => c.DisplayName)
                                                     .ToList();
 
+            // Store creature data into JSON file
             await ExternalServices.Instance.SaveJsonAsync(followers, $@"{_jsonFolder}\LGCreatures_ext.json");
         }
     }
