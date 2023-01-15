@@ -7,16 +7,6 @@ a.navbar-brand {
   word-break: break-all;
 }
 
-a {
-  color: #0077cc;
-}
-
-.btn-primary {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
-}
-
 .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
   color: #fff;
   background-color: #1b6ec2;
@@ -45,4 +35,10 @@ button.accept-policy {
   width: 100%;
   white-space: nowrap;
   line-height: 60px;
+  background-color: #212529;
+  color: #fff;
+}
+
+.footer, a {
+    color: #fff;
 }

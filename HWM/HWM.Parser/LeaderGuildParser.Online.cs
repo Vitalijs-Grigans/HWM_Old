@@ -19,6 +19,7 @@ namespace HWM.Parser
     public partial class LeaderGuildParser : IParser
     {
         private string _endpoint;
+        private IList<string> _owners;
         private string _jsonFolder;
         private string _imageFolder;
 
@@ -69,10 +70,31 @@ namespace HWM.Parser
 
             return returnVal;
         }
+
+        // Method to assign owners for every follower (if exists)
+        private IList<int> SetOwners
+        (
+            IDictionary<int, IList<string>> collections,
+            string follower
+        )
+        {
+            IList<int> ownersList = new List<int>();
+
+            foreach (var collection in collections)
+            {
+                if (collection.Value.Contains(follower))
+                {
+                    ownersList.Add(collection.Key);
+                }
+            }
+
+            return ownersList;
+        }
         
         public LeaderGuildParser(IDictionary<string, string> config)
         {
             _endpoint = config["LeaderGuildEndpoint"];
+            _owners = config["CreatureOwnersList"].Split(',');
             _jsonFolder = config["ParseResultsFolder"];
             _imageFolder = config["CreatureImageFolder"];
         }
@@ -80,8 +102,27 @@ namespace HWM.Parser
         // Asynchronous method to fetch required data from external service
         public async Task CollectDataAsync()
         {
+            // Obtain creature names for each owner
+            IDictionary<int, IList<string>> ownerCollection = new Dictionary<int, IList<string>>();
+
+            foreach (var owner in _owners)
+            {
+                HtmlDocument ownerDoc =
+                    await ExternalServices.Instance.GetHtmlAsync($@"{_endpoint}/collection/{owner}");
+                HtmlNode ownerBody = ownerDoc.DocumentNode.SelectSingleNode("//body");
+                var collection = ownerBody.SelectNodes
+                (
+                    "//div[contains(@style, 'display:flex;flex-wrap: wrap;')]//div[@class='cre_mon_parent']/a"
+                )
+                .Select(n => n.Attributes["title"]?.Value)
+                .ToList();
+                
+                ownerCollection.Add(ConvertToNumber(owner), collection);
+            }
+            
             // Obtain creature links to external site by traversing DOM tree
-            HtmlDocument htmlDoc = await ExternalServices.Instance.GetHtmlAsync(_endpoint);
+            HtmlDocument htmlDoc =
+                await ExternalServices.Instance.GetHtmlAsync($@"{_endpoint}/leader.php");
             HtmlNode body = htmlDoc.DocumentNode.SelectSingleNode("//body");
             HtmlNodeCollection creatureNodes = 
                 body.SelectNodes("//div[@class='fcont']//div[@class='cre_mon_parent']/a");
@@ -95,17 +136,17 @@ namespace HWM.Parser
                 
                 // Creature color background represented by hex code
                 string backgroundStyle =
-                    anchor.ParentNode.ParentNode.ParentNode.Attributes["style"].Value;
+                    anchor.ParentNode.ParentNode.ParentNode.Attributes["style"]?.Value;
 
                 // Url to creature details
-                string url = anchor.Attributes["href"].Value;
+                string url = anchor.Attributes["href"]?.Value;
 
                 // Creature name used by system and display respectively
                 string name = url.Split('=').LastOrDefault();
-                string displayName = anchor.Attributes["title"].Value;
+                string displayName = anchor.Attributes["title"]?.Value;
 
                 // Url to creature image
-                string imageUrl = anchor.ChildNodes.LastOrDefault().Attributes["src"].Value;
+                string imageUrl = anchor.ChildNodes.LastOrDefault().Attributes["src"]?.Value;
 
                 // Find creature image (if exists), otherwise - download it
                 string file = $"{name}.png";
@@ -156,6 +197,7 @@ namespace HWM.Parser
                     Tier = tier,
                     DisplayTier = tier.GetDisplayName(),
                     Leadership = ConvertToNumber(creatureStats[9].InnerText.Replace(",", string.Empty)),
+                    Owners = SetOwners(ownerCollection, displayName)
                 };
 
                 creatureList.Add(follower);

@@ -1,4 +1,6 @@
-﻿using HWM.Parser.Entities.Creature;
+﻿using System.Collections.Generic;
+
+using HWM.Parser.Entities.Creature;
 using HWM.Parser.Interfaces;
 
 namespace HWM.Parser.Entities.LeaderGuild
@@ -10,6 +12,8 @@ namespace HWM.Parser.Entities.LeaderGuild
         public string DisplayTier { get; set; }
 
         public int Leadership { get; set; }
+
+        public IList<int> Owners { get; set; }
 
         public Rating Efficiency { get; set; }
     }

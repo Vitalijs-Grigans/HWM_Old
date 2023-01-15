@@ -2,12 +2,12 @@
     ViewData["Title"] = "Гильдия Лидеров - Рейтинг последователей";
 }
 
-<h1 class="text-center display-6">Рейтинг последователей</h1>
+<h1 id="follower-rating-header" class="text-center display-6">Рейтинг последователей</h1>
 
 <div class="table-responsive table-fixed-container">
-    <table id="followers-table" class="table table-sm table-striped table-hover table-info">
+    <table id="followers-table" class="table table-sm table-striped table-hover table-dark text-center">
         <thead>
-            <tr>
+            <tr class="text-info">
                 <th>#</th>
                 <th>№</th>
                 <th>Существо</th>
@@ -39,7 +39,9 @@
                     <td>@follower.DisplayName</td>
                     <td>@follower.DisplayTier</td>
                     <td>@follower.Leadership</td>
-                    <td><strong>@follower.Efficiency.Overall</strong></td>
+                    <td class="text-danger">
+                        <strong>@follower.Efficiency.Overall</strong>
+                    </td>
                     <td>@follower.Efficiency.Attack</td>
                     <td>@follower.Efficiency.Defence</td>
                     <td>@follower.Efficiency.MinDamage</td>

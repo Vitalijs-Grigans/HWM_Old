@@ -21,8 +21,8 @@ body {
   margin-bottom: 60px;
 }
 
-main {
-    padding-top: 0.85em;
+#follower-rating-header {
+    margin-top: 0.25em;
 }
 
 table {

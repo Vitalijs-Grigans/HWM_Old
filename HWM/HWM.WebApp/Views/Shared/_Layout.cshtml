@@ -11,13 +11,36 @@
     <link rel="stylesheet" href="~/HWM.WebApp.styles.css" asp-append-version="true" />
 </head>
 <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="@Url.Action("Leader", "HWM")">Гильдия лидеров</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDarkDropdown" aria-controls="navbarNavDarkDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavDarkDropdown">
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Рейтинг существ
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDarkDropdownMenuLink">
+                            <li><a class="dropdown-item" href="@Url.Action("Leader", "HWM")">---Все существа---</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Leader", "HWM", new { ownerId = 7946153 })">Винсент ван Далл</a></li>
+                            <li><a class="dropdown-item" href="#">Штраф Трудоголика</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <div class="container-fluid">
         <main role="main">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
+    <footer class="border-top footer">
         <div class="container text-center">
             &copy; @DateTime.Now.Year - Герои войны и денег
         </div>

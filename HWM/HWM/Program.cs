@@ -20,7 +20,7 @@ namespace HWM
             
             IConfiguration config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables()
                 .Build();
 
@@ -33,6 +33,7 @@ namespace HWM
                 new Dictionary<string, string>()
                 {
                     { "LeaderGuildEndpoint", settings.LeaderGuildEndpoint },
+                    { "CreatureOwnersList", string.Join(",", settings.CreatureOwnersList) },
                     { "ParseResultsFolder", settings.ParseResultsFolder },
                     { "CreatureImageFolder", settings.CreatureImageFolder },
                 }

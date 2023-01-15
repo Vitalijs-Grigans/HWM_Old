@@ -14,14 +14,22 @@ namespace HWM.WebApp.Controllers
         {
             _logger = logger;
         }
-        
-        public IActionResult Leader()
+
+        [HttpGet]
+        public IActionResult Leader(int ownerId = 0)
         {
             string path = @"D:\Database\HWM\Leader\LGCreatures_ext.json";
             string json = System.IO.File.ReadAllText(path, System.Text.Encoding.UTF8);
+
             IEnumerable<FollowerModel> followerList =
                 JsonConvert.DeserializeObject<IEnumerable<FollowerModel>>(json) ??
                 throw new ArgumentException();
+
+            if (ownerId > 0)
+            {
+                followerList = 
+                    followerList.Where(f => f.Owners.Contains(ownerId) && f.Tier != 4);
+            }
 
             return View(followerList);
         }
