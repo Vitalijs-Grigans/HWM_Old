@@ -13,7 +13,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="@Url.Action("Leader", "HWM")">Гильдия лидеров</a>
+            <a class="navbar-brand" href="@Url.Action("Leader", "Home", new { ownerId = 0 })">Гильдия лидеров</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDarkDropdown" aria-controls="navbarNavDarkDropdown" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -24,8 +24,8 @@
                             Рейтинг существ
                         </a>
                         <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDarkDropdownMenuLink">
-                            <li><a class="dropdown-item" href="@Url.Action("Leader", "HWM")">---Все существа---</a></li>
-                            <li><a class="dropdown-item" href="@Url.Action("Leader", "HWM", new { ownerId = 7946153 })">Винсент ван Далл</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Leader", "Home", new { ownerId = 0 })">---Все существа---</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Leader", "Home", new { ownerId = 7946153 })">Винсент ван Далл</a></li>
                             <li><a class="dropdown-item" href="#">Штраф Трудоголика</a></li>
                         </ul>
                     </li>

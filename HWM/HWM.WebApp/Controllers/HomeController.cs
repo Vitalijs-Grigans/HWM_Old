@@ -1,16 +1,19 @@
-﻿using HWM.WebApp.Models;
+﻿using System.Diagnostics;
+
 using Microsoft.AspNetCore.Mvc;
 
 using Newtonsoft.Json;
-using System.Diagnostics;
+
+using HWM.WebApp.Models;
+
 
 namespace HWM.WebApp.Controllers
 {
-    public class HWMController : Controller
+    public class HomeController : Controller
     {
-        private readonly ILogger<HWMController> _logger;
+        private readonly ILogger<HomeController> _logger;
 
-        public HWMController(ILogger<HWMController> logger)
+        public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
         }
