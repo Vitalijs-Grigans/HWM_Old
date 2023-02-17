@@ -10,12 +10,37 @@ using HWM.Parser.Interfaces;
 namespace HWM.Parser
 {
     public partial class LeaderGuildParser : IParser
-    { 
+    {
+        public async Task ProcessDataAsync()
+        {
+            // Load JSON file into existing object representation
+            IEnumerable<Follower> creatureList =
+                await ExternalServices.Instance.LoadJsonAsync($@"{_jsonFolder}\LGCreatures.json");
+
+            // Get creature raw efficiency for each characteristics
+            IDictionary<string, double[]> maxEfficiency = GetAbsoluteEfficiency(creatureList);
+
+            // Get creature efficiency against best value for each tier type
+            GetRelativeEfficiency(creatureList, maxEfficiency);
+
+            // Get creature overall and each characteristics rating 
+            GetFinalScore(creatureList);
+
+            // Apply ordering to collection
+            IEnumerable<Follower> followers = creatureList.OrderByDescending(c => c.Efficiency.Overall)
+                                                    .ThenBy(c => c.Tier)
+                                                    .ThenBy(c => c.DisplayName)
+                                                    .ToList();
+
+            // Store creature data into JSON file
+            await ExternalServices.Instance.SaveJsonAsync(followers, $@"{_jsonFolder}\LGCreatures_ext.json");
+        }
+
         // Method for applying bonus for strongest tier creatures 
         private double AssignTierModifier(double value, Rarity tier)
         {
             double result = default(double);
-            
+
             // Apply bonus based on creature tier
             switch (tier)
             {
@@ -45,7 +70,7 @@ namespace HWM.Parser
 
             return result;
         }
-        
+
         //Method 1 to calculate creature absolute efficiency for allsimple characteristics
         private double CalculateEfficiency(double absoluteStatValue, int leadership, Rarity tier)
         {
@@ -60,13 +85,13 @@ namespace HWM.Parser
             double baseStatValue,
             double extraStatValue,
             double coefficient,
-            int leadership, 
+            int leadership,
             Rarity tier
         )
         {
             double efficiency =
                 baseStatValue * (1 + extraStatValue * coefficient) / leadership;
-            
+
             return AssignTierModifier(efficiency, tier);
         }
 
@@ -180,7 +205,7 @@ namespace HWM.Parser
             // Extract best efficiency results for each characteristics and tier type
             return new Dictionary<string, double[]>()
             {
-                { 
+                {
                     "Attack",
                     new double[]
                     {
@@ -191,7 +216,7 @@ namespace HWM.Parser
                         standard.Max(c => c.Efficiency.Absolute.Attack),
                     }
                 },
-                { 
+                {
                     "Defence",
                     new double[]
                     {
@@ -304,39 +329,6 @@ namespace HWM.Parser
             };
         }
 
-        // Method for calculating creature efficiency based on best value and tier type
-        private void GetRelativeEfficiency(IEnumerable<Follower> creatures, IDictionary<string, double[]> max)
-        {
-            foreach (var follower in creatures)
-            {
-                follower.Efficiency.Relative = new RelativeRating()
-                {
-                    Attack =
-                        follower.Efficiency.Absolute.Attack / max["Attack"][(int)follower.Tier] * 100,
-                    Defence =
-                        follower.Efficiency.Absolute.Defence / max["Defence"][(int)follower.Tier] * 100,
-                    MinDamage =
-                        follower.Efficiency.Absolute.MinDamage / max["MinDamage"][(int)follower.Tier] * 100,
-                    MaxDamage =
-                        follower.Efficiency.Absolute.MaxDamage / max["MaxDamage"][(int)follower.Tier] * 100,
-                    HitPoints =
-                        follower.Efficiency.Absolute.HitPoints / max["HitPoints"][(int)follower.Tier] * 100,
-                    Movement =
-                        follower.Efficiency.Absolute.Movement / max["Movement"][(int)follower.Tier] * 100,
-                    Initiative =
-                        follower.Efficiency.Absolute.Initiative / max["Initiative"][(int)follower.Tier] * 100,
-                    Abilities =
-                        follower.Efficiency.Absolute.Abilities / max["Abilities"][(int)follower.Tier] * 100,
-                    Offense =
-                        follower.Efficiency.Absolute.Offense / max["Offense"][(int)follower.Tier] * 100,
-                    Survivability =
-                        follower.Efficiency.Absolute.Survivability / max["Survivability"][(int)follower.Tier] * 100,
-                    Rush =
-                        follower.Efficiency.Absolute.Rush / max["Rush"][(int)follower.Tier] * 100
-                };
-            }
-        }
-
         // Method for calculating creature overall and each characteristics rating 
         private void GetFinalScore(IEnumerable<Follower> creatures)
         {
@@ -372,29 +364,37 @@ namespace HWM.Parser
             }
         }
 
-        public async Task ProcessDataAsync()
+        // Method for calculating creature efficiency based on best value and tier type
+        private void GetRelativeEfficiency(IEnumerable<Follower> creatures, IDictionary<string, double[]> max)
         {
-            // Load JSON file into existing object representation
-            IEnumerable<Follower> creatureList =
-                await ExternalServices.Instance.LoadJsonAsync($@"{_jsonFolder}\LGCreatures.json");
-
-            // Get creature raw efficiency for each characteristics
-            IDictionary<string, double[]> maxEfficiency = GetAbsoluteEfficiency(creatureList);
-
-            // Get creature efficiency against best value for each tier type
-            GetRelativeEfficiency(creatureList, maxEfficiency);
-
-            // Get creature overall and each characteristics rating 
-            GetFinalScore(creatureList);
-
-            // Apply ordering to collection
-            IEnumerable<Follower> followers = creatureList.OrderByDescending(c => c.Efficiency.Overall)
-                                                    .ThenBy(c => c.Tier)
-                                                    .ThenBy(c => c.DisplayName)
-                                                    .ToList();
-
-            // Store creature data into JSON file
-            await ExternalServices.Instance.SaveJsonAsync(followers, $@"{_jsonFolder}\LGCreatures_ext.json");
+            foreach (var follower in creatures)
+            {
+                follower.Efficiency.Relative = new RelativeRating()
+                {
+                    Attack =
+                        follower.Efficiency.Absolute.Attack / max["Attack"][(int)follower.Tier] * 100,
+                    Defence =
+                        follower.Efficiency.Absolute.Defence / max["Defence"][(int)follower.Tier] * 100,
+                    MinDamage =
+                        follower.Efficiency.Absolute.MinDamage / max["MinDamage"][(int)follower.Tier] * 100,
+                    MaxDamage =
+                        follower.Efficiency.Absolute.MaxDamage / max["MaxDamage"][(int)follower.Tier] * 100,
+                    HitPoints =
+                        follower.Efficiency.Absolute.HitPoints / max["HitPoints"][(int)follower.Tier] * 100,
+                    Movement =
+                        follower.Efficiency.Absolute.Movement / max["Movement"][(int)follower.Tier] * 100,
+                    Initiative =
+                        follower.Efficiency.Absolute.Initiative / max["Initiative"][(int)follower.Tier] * 100,
+                    Abilities =
+                        follower.Efficiency.Absolute.Abilities / max["Abilities"][(int)follower.Tier] * 100,
+                    Offense =
+                        follower.Efficiency.Absolute.Offense / max["Offense"][(int)follower.Tier] * 100,
+                    Survivability =
+                        follower.Efficiency.Absolute.Survivability / max["Survivability"][(int)follower.Tier] * 100,
+                    Rush =
+                        follower.Efficiency.Absolute.Rush / max["Rush"][(int)follower.Tier] * 100
+                };
+            }
         }
     }
 }

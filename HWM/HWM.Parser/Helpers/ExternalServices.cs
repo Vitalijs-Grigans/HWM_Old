@@ -32,6 +32,20 @@ namespace HWM.Parser.Helpers
             } 
         }
 
+        // Asynchronous method to retrieve image from external source
+        public async Task DownloadImageAsync(string url, string fileName)
+        {
+            var client = new HttpClient();
+            var response = await client.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+
+            byte[] bytes = await response.Content.ReadAsByteArrayAsync();
+            Image image = Image.FromStream(new MemoryStream(bytes));
+
+            image.Save(fileName);
+        }
+
         // Asynchronous method to retrieve html source from external site
         public async Task<HtmlDocument> GetHtmlAsync(string url)
         {
@@ -48,18 +62,12 @@ namespace HWM.Parser.Helpers
             return doc;
         }
 
-        // Asynchronous method to retrieve image from external source
-        public async Task DownloadImageAsync(string url, string fileName)
+        // Asynchronous method to load JSON from file
+        public async Task<IEnumerable<Follower>> LoadJsonAsync(string path)
         {
-            var client = new HttpClient();
-            var response = await client.GetAsync(url);
+            string json = await File.ReadAllTextAsync(path);
 
-            response.EnsureSuccessStatusCode();
-
-            byte[] bytes = await response.Content.ReadAsByteArrayAsync();
-            Image image = Image.FromStream(new MemoryStream(bytes));
-
-            image.Save(fileName);
+            return JsonConvert.DeserializeObject<IEnumerable<Follower>>(json);
         }
 
         // Asynchronous method to store JSON in file
@@ -68,14 +76,6 @@ namespace HWM.Parser.Helpers
             string json = JsonConvert.SerializeObject(data, Formatting.Indented);
 
             await File.WriteAllTextAsync(path, json);
-        }
-
-        // Asynchronous method to load JSON from file
-        public async Task<IEnumerable<Follower>> LoadJsonAsync(string path)
-        {
-            string json = await File.ReadAllTextAsync(path);
-
-            return JsonConvert.DeserializeObject<IEnumerable<Follower>>(json);
         }
     }
 }
