@@ -9,17 +9,17 @@ using HWM.WebApp.Models;
 
 namespace HWM.WebApp.Controllers
 {
-    public class HomeController : Controller
+    public class LeaderController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ILogger<LeaderController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        public LeaderController(ILogger<LeaderController> logger)
         {
             _logger = logger;
         }
 
         [HttpGet]
-        public IActionResult Leader(int ownerId = 0)
+        public IActionResult Index(int ownerId = 0)
         {
             string path = @"D:\Database\HWM\Leader\LGCreatures_ext.json";
             string json = System.IO.File.ReadAllText(path, System.Text.Encoding.UTF8);

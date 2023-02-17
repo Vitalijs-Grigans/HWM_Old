@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
 
 using HtmlAgilityPack;
+using Newtonsoft.Json;
 
 using HWM.Parser.Helpers;
 using HWM.Parser.Interfaces;
@@ -21,6 +23,7 @@ namespace HWM.Parser
         {
             _endpoint = config["LeaderGuildEndpoint"];
             _owners = config["CreatureOwnersList"].Split(',');
+            _forceUpdate = config["CreatureForceUpdate"] == "1";
             _jsonFolder = config["ParseResultsFolder"];
             _imageFolder = config["CreatureImageFolder"];
         }
@@ -75,7 +78,7 @@ namespace HWM.Parser
                 // Find existing creature if such exists
                 Follower existingFollower = cachedCreatures.FirstOrDefault(c => c.Name == name);
 
-                if (existingFollower == null)
+                if (existingFollower == null || _forceUpdate)
                 {
                     // Creature name used for rendering
                     string displayName = imageAnchor.Attributes["title"]?.Value;
@@ -137,6 +140,7 @@ namespace HWM.Parser
 
         private string _endpoint;
         private IEnumerable<string> _owners;
+        private bool _forceUpdate;
         private string _jsonFolder;
         private string _imageFolder;
 
@@ -145,6 +149,15 @@ namespace HWM.Parser
             (IEnumerable<string> ownerIds, string endpoint)
         {
             IDictionary<int, IList<string>> collection = new Dictionary<int, IList<string>>();
+
+            int lowPlayerId = 7719041;
+
+            // Load JSON file for low lvl player into standard object representation
+            var localFollowers =
+                JsonConvert.DeserializeObject<IList<string>>
+                (
+                    File.ReadAllText($@"{_jsonFolder}\{lowPlayerId}.json")
+                );
 
             foreach (var ownerId in ownerIds)
             {
@@ -160,6 +173,9 @@ namespace HWM.Parser
 
                 collection.Add(ConvertToNumber(ownerId), followers);
             }
+
+            // Add local collection for players whose lvl < 5
+            collection.Add(lowPlayerId, localFollowers);
 
             return collection;
         }

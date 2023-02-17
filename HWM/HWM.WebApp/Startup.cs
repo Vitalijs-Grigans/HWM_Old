@@ -27,7 +27,7 @@
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Leader}/{ownerId?}"
+                    pattern: "{controller=Leader}/{action=Index}/{ownerId?}"
                 );
             });
         }
