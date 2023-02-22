@@ -13,19 +13,24 @@ html {
 }
 
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+    background: url("../images/background.png") no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
 }
 
 #follower-rating-header {
     margin-top: 0.25em;
 }
 
-table {
+#followers-table {
     border-collapse: collapse;
     width: 100%;
 }
