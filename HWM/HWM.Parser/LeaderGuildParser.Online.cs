@@ -66,11 +66,14 @@ namespace HWM.Parser
 
                 // Anchor element of creature
                 var imageAnchor = 
-                    creatureNode.Descendants("a").FirstOrDefault(d => d.Attributes.Contains("title"));
+                    creatureNode.Descendants("a").FirstOrDefault(d => 
+                        d.Attributes.Contains("title"));
 
                 // Url to creature details
-                //string pageUrl = imageAnchor.Attributes["href"]?.Value;
                 string pageUrl = imageAnchor.Attributes["href"]?.Value;
+
+                // Creature name used for rendering
+                string displayName = imageAnchor.Attributes["title"]?.Value;
 
                 // Creature name used by system
                 string name = pageUrl.Split('=').LastOrDefault();
@@ -80,9 +83,6 @@ namespace HWM.Parser
 
                 if (existingFollower == null || _forceUpdate)
                 {
-                    // Creature name used for rendering
-                    string displayName = imageAnchor.Attributes["title"]?.Value;
-
                     // Url to creature image
                     string imageUrl =
                         imageAnchor.Descendants("img")
@@ -112,7 +112,6 @@ namespace HWM.Parser
                         Tier = tier,
                         DisplayTier = tier.GetDisplayName(),
                         Leadership = leadership,
-                        Owners = SetOwners(ownersCollection, displayName),
                         Characteristics = await RetrieveCharacteristics(pageUrl)
                     };
                 }
@@ -129,6 +128,7 @@ namespace HWM.Parser
                     }
                 }
 
+                follower.Owners = SetOwners(ownersCollection, displayName);
                 creatureList.Add(follower);
 
                 DisplayProcessStatus(follower.Id, quarter);
