@@ -19,6 +19,13 @@
                         />
                 </th>
                 <th>
+                    <img src="~/images/leadership.png"
+                         width="24"
+                         height="24"
+                         alt="Лидерство"
+                         title="Лидерство" />
+                </th>
+                <th>
                     <img src="~/images/rare.png"
                          width="24"
                          height="24"
@@ -42,14 +49,6 @@
                          height="24"
                          alt="Мифический"
                          title="Мифический" 
-                    />
-                </th>
-                <th>
-                    <img src="~/images/leadership.png"
-                         width="24"
-                         height="24"
-                         alt="Лидерство"
-                         title="Лидерство" 
                     />
                 </th>
                 <th>
@@ -152,8 +151,8 @@
                     <td>@i</td>
                     <td>@follower.Id</td>
                     <td>@follower.DisplayName</td>
-                    <td>@follower.DisplayTier</td>
                     <td>@follower.Leadership</td>
+                    <td>@follower.DisplayTier</td>
                     <td class="text-danger">
                         <strong>@follower.Efficiency.Overall</strong>
                     </td>
