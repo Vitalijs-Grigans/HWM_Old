@@ -6,9 +6,7 @@
 
         public double Defence { get; set; }
 
-        public double MinDamage { get; set; }
-
-        public double MaxDamage { get; set; }
+        public double Damage { get; set; }
 
         public double HitPoints { get; set; }
 

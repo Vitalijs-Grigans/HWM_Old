@@ -16,10 +16,7 @@ namespace HWM.Parser.Entities.LeaderGuild
         public int Defence { get; set; }
 
         [DataMember]
-        public int MinDamage { get; set; }
-
-        [DataMember]
-        public int MaxDamage { get; set; }
+        public int Damage { get; set; }
 
         [DataMember]
         public int HitPoints { get; set; }

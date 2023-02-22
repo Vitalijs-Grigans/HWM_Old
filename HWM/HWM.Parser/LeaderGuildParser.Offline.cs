@@ -100,6 +100,13 @@ namespace HWM.Parser
         {
             foreach (var follower in creatures)
             {
+                double avgDamage = new double[]
+                    {
+                        follower.Characteristics.MinDamage,
+                        follower.Characteristics.MaxDamage
+                    }
+                    .Average();
+
                 follower.Efficiency = new Rating()
                 {
                     Absolute = new AbsoluteRating()
@@ -118,17 +125,10 @@ namespace HWM.Parser
                                 follower.Leadership,
                                 follower.Tier
                             ),
-                        MinDamage =
+                        Damage =
                             CalculateEfficiency
                             (
-                                follower.Characteristics.MinDamage,
-                                follower.Leadership,
-                                follower.Tier
-                            ),
-                        MaxDamage =
-                            CalculateEfficiency
-                            (
-                                follower.Characteristics.MaxDamage,
+                                avgDamage,
                                 follower.Leadership,
                                 follower.Tier
                             ),
@@ -163,11 +163,7 @@ namespace HWM.Parser
                         Offense =
                             CalculateEfficiency
                             (
-                                new double[]
-                                {
-                                    follower.Characteristics.MinDamage,
-                                    follower.Characteristics.MaxDamage
-                                }.Average(),
+                                avgDamage,
                                 follower.Characteristics.Attack,
                                 0.05d,
                                 follower.Leadership,
@@ -228,25 +224,14 @@ namespace HWM.Parser
                     }
                 },
                 {
-                    "MinDamage",
+                    "Damage",
                     new double[]
                     {
-                        mythical.Max(c => c.Efficiency.Absolute.MinDamage),
-                        legendary.Max(c => c.Efficiency.Absolute.MinDamage),
-                        veryRare.Max(c => c.Efficiency.Absolute.MinDamage),
-                        rare.Max(c => c.Efficiency.Absolute.MinDamage),
-                        standard.Max(c => c.Efficiency.Absolute.MinDamage),
-                    }
-                },
-                {
-                    "MaxDamage",
-                    new double[]
-                    {
-                        mythical.Max(c => c.Efficiency.Absolute.MaxDamage),
-                        legendary.Max(c => c.Efficiency.Absolute.MaxDamage),
-                        veryRare.Max(c => c.Efficiency.Absolute.MaxDamage),
-                        rare.Max(c => c.Efficiency.Absolute.MaxDamage),
-                        standard.Max(c => c.Efficiency.Absolute.MaxDamage),
+                        mythical.Max(c => c.Efficiency.Absolute.Damage),
+                        legendary.Max(c => c.Efficiency.Absolute.Damage),
+                        veryRare.Max(c => c.Efficiency.Absolute.Damage),
+                        rare.Max(c => c.Efficiency.Absolute.Damage),
+                        standard.Max(c => c.Efficiency.Absolute.Damage),
                     }
                 },
                 {
@@ -338,8 +323,7 @@ namespace HWM.Parser
                 {
                     follower.Efficiency.Relative.Attack,
                     follower.Efficiency.Relative.Defence,
-                    follower.Efficiency.Relative.MinDamage,
-                    follower.Efficiency.Relative.MaxDamage,
+                    follower.Efficiency.Relative.Damage,
                     follower.Efficiency.Relative.HitPoints,
                     follower.Efficiency.Relative.Movement,
                     follower.Efficiency.Relative.Initiative,
@@ -351,8 +335,7 @@ namespace HWM.Parser
 
                 follower.Efficiency.Attack = (int)Math.Round(follower.Efficiency.Relative.Attack);
                 follower.Efficiency.Defence = (int)Math.Round(follower.Efficiency.Relative.Defence);
-                follower.Efficiency.MinDamage = (int)Math.Round(follower.Efficiency.Relative.MinDamage);
-                follower.Efficiency.MaxDamage = (int)Math.Round(follower.Efficiency.Relative.MaxDamage);
+                follower.Efficiency.Damage = (int)Math.Round(follower.Efficiency.Relative.Damage);
                 follower.Efficiency.HitPoints = (int)Math.Round(follower.Efficiency.Relative.HitPoints);
                 follower.Efficiency.Movement = (int)Math.Round(follower.Efficiency.Relative.Movement);
                 follower.Efficiency.Initiative = (int)Math.Round(follower.Efficiency.Relative.Initiative);
@@ -365,7 +348,11 @@ namespace HWM.Parser
         }
 
         // Method for calculating creature efficiency based on best value and tier type
-        private void GetRelativeEfficiency(IEnumerable<Follower> creatures, IDictionary<string, double[]> max)
+        private void GetRelativeEfficiency
+        (
+            IEnumerable<Follower> creatures,
+            IDictionary<string, double[]> max
+        )
         {
             foreach (var follower in creatures)
             {
@@ -375,10 +362,8 @@ namespace HWM.Parser
                         follower.Efficiency.Absolute.Attack / max["Attack"][(int)follower.Tier] * 100,
                     Defence =
                         follower.Efficiency.Absolute.Defence / max["Defence"][(int)follower.Tier] * 100,
-                    MinDamage =
-                        follower.Efficiency.Absolute.MinDamage / max["MinDamage"][(int)follower.Tier] * 100,
-                    MaxDamage =
-                        follower.Efficiency.Absolute.MaxDamage / max["MaxDamage"][(int)follower.Tier] * 100,
+                    Damage =
+                        follower.Efficiency.Absolute.Damage / max["Damage"][(int)follower.Tier] * 100,
                     HitPoints =
                         follower.Efficiency.Absolute.HitPoints / max["HitPoints"][(int)follower.Tier] * 100,
                     Movement =
