@@ -34,7 +34,6 @@ namespace HWM
                 {
                     { "LeaderGuildEndpoint", settings.LeaderGuildEndpoint },
                     { "CreatureOwnersList", string.Join(",", settings.CreatureOwnersList) },
-                    { "CreatureForceUpdate", settings.CreatureForceUpdate },
                     { "ParseResultsFolder", settings.ParseResultsFolder },
                     { "CreatureImageFolder", settings.CreatureImageFolder },
                 }

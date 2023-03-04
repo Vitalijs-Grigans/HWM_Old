@@ -23,7 +23,6 @@ namespace HWM.Parser
         {
             _endpoint = config["LeaderGuildEndpoint"];
             _owners = config["CreatureOwnersList"].Split(',');
-            _forceUpdate = config["CreatureForceUpdate"] == "1";
             _jsonFolder = config["ParseResultsFolder"];
             _imageFolder = config["CreatureImageFolder"];
         }
@@ -81,7 +80,7 @@ namespace HWM.Parser
                 // Find existing creature if such exists
                 Follower existingFollower = cachedCreatures.FirstOrDefault(c => c.Name == name);
 
-                if (existingFollower == null || _forceUpdate)
+                if (existingFollower == null)
                 {
                     // Url to creature image
                     string imageUrl =
@@ -140,7 +139,6 @@ namespace HWM.Parser
 
         private string _endpoint;
         private IEnumerable<string> _owners;
-        private bool _forceUpdate;
         private string _jsonFolder;
         private string _imageFolder;
 
