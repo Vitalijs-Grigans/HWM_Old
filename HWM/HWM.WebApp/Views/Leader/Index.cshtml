@@ -135,10 +135,33 @@
                     <img src="~/images/rush.png"
                          width="24"
                          height="24"
-                         alt="Темп"
-                         title="Темп" 
+                         alt="Рвение"
+                         title="Рвение" 
                     />
                 </th>
+                @{
+                    bool? hasOwner = (bool?)ViewData["HasOwner"];
+
+                    if (hasOwner.HasValue && hasOwner.Value)
+                    {
+                        <th>
+                            <img src="~/images/troops.png"
+                                 width="24"
+                                 height="24"
+                                 alt="Доступное количество"
+                                 title="Доступное количество" 
+                            />
+                        </th>
+                        <th>
+                            <img src="~/images/health_points.png"
+                                 width="24"
+                                 height="24"
+                                 alt="Доступное ХП"
+                                 title="Доступное ХП" 
+                            />
+                        </th>
+                    }
+                }
             </tr>
         </thead>
         <tbody>
@@ -150,7 +173,18 @@
                 <tr>
                     <td>@i</td>
                     <td>@follower.Id</td>
-                    <td>@follower.DisplayName</td>
+
+                    @if (hasOwner.HasValue && hasOwner.Value)
+                    {
+                        <td>
+                            @follower.DisplayName [@follower.Pools[follower.ActivePoolId].InStock]
+                        </td>
+                    }
+                    else 
+                    {
+                        <td>@follower.DisplayName</td>
+                    }
+
                     <td>@follower.Leadership</td>
                     <td>@follower.DisplayTier</td>
                     <td class="text-danger">
@@ -166,6 +200,20 @@
                     <td>@follower.Efficiency.Offense</td>
                     <td>@follower.Efficiency.Survivability</td>
                     <td>@follower.Efficiency.Rush</td>
+
+                    @if (hasOwner.HasValue && hasOwner.Value)
+                    {
+                        <td class="text-danger">
+                            <b>
+                                <em>@follower.Pools[follower.ActivePoolId].AllowedCount</em>
+                            </b>
+                        </td>
+                        <td class="text-danger">
+                            <b>
+                                <em>@follower.Pools[follower.ActivePoolId].AllowedHP</em>
+                            </b>
+                        </td>
+                    }
                 </tr>
 
                 i++;

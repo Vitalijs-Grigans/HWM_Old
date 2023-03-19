@@ -15,7 +15,10 @@ namespace HWM.Parser
         {
             // Load JSON file into existing object representation
             IEnumerable<Follower> creatureList =
-                await ExternalServices.Instance.LoadJsonAsync($@"{_jsonFolder}\LGCreatures.json");
+                await GenericExternalServices<IEnumerable<Follower>>.Instance.LoadJsonAsync
+                (
+                    $@"{_jsonFolder}\LGCreatures.json"
+                );
 
             // Get creature raw efficiency for each characteristics
             IDictionary<string, double[]> maxEfficiency = GetAbsoluteEfficiency(creatureList);
@@ -33,7 +36,11 @@ namespace HWM.Parser
                                                     .ToList();
 
             // Store creature data into JSON file
-            await ExternalServices.Instance.SaveJsonAsync(followers, $@"{_jsonFolder}\LGCreatures_ext.json");
+            await GenericExternalServices<IEnumerable<Follower>>.Instance.SaveJsonAsync
+            (
+                followers, 
+                $@"{_jsonFolder}\LGCreatures_ext.json"
+            );
         }
 
         // Method for applying bonus for strongest tier creatures 

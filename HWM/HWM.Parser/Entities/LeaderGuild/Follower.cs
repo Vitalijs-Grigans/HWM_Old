@@ -13,7 +13,7 @@ namespace HWM.Parser.Entities.LeaderGuild
 
         public int Leadership { get; set; }
 
-        public IEnumerable<int> Owners { get; set; }
+        public IEnumerable<Pool> Pools { get; set; }
 
         public Rating Efficiency { get; set; }
     }

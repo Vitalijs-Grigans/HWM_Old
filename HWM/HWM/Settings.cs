@@ -6,9 +6,9 @@ namespace HWM
     {
         public string LeaderGuildEndpoint { get; set; }
 
-        public IList<string> CreatureOwnersList { get; set; }
+        public string CharacterProgressEndpoint { get; set; }
 
-        public string CreatureForceUpdate { get; set; }
+        public IList<string> CreatureOwnersList { get; set; }
 
         public string ParseResultsFolder { get; set; }
 

@@ -21,8 +21,9 @@ namespace HWM.Parser
     {
         public LeaderGuildParser(IDictionary<string, string> config)
         {
-            _endpoint = config["LeaderGuildEndpoint"];
-            _owners = config["CreatureOwnersList"].Split(',');
+            _endpointLG = config["LeaderGuildEndpoint"];
+            _endpointCP = config["CharacterProgressEndpoint"];
+            _ownerIds = config["CreatureOwnersList"].Split(',').Select(int.Parse).ToList();
             _jsonFolder = config["ParseResultsFolder"];
             _imageFolder = config["CreatureImageFolder"];
         }
@@ -32,15 +33,18 @@ namespace HWM.Parser
         {
             // Obtain existing creature info from local JSON file
             IEnumerable<Follower> cachedCreatures =
-                await ExternalServices.Instance.LoadJsonAsync($@"{_jsonFolder}\LGCreatures.json");
+                await GenericExternalServices<IEnumerable<Follower>>.Instance.LoadJsonAsync
+                (
+                    $@"{_jsonFolder}\LGCreatures.json"
+                );
 
             // Obtain follower names for each corresponding owner
-            IDictionary<int, IList<string>> ownersCollection =
-                await CreateOwnersCollection(_owners, _endpoint);
+            IDictionary<int, string[,]> ownersCollection =
+                await CreateOwnersCollection(_ownerIds, _endpointLG);
 
             // Obtain basic creature data containers
             HtmlDocument htmlDoc =
-                await ExternalServices.Instance.GetHtmlAsync($@"{_endpoint}/leader.php");
+                await ExternalServices.Instance.GetHtmlAsync($@"{_endpointLG}/leader.php");
             HtmlNodeCollection creatureNodeCollection =
                 htmlDoc.DocumentNode.SelectNodes("//div[@class='fcont']//div[@class='ccont']");
 
@@ -127,49 +131,110 @@ namespace HWM.Parser
                     }
                 }
 
-                follower.Owners = SetOwners(ownersCollection, displayName);
+                follower.Pools = SetPools
+                (
+                    ownersCollection,
+                    displayName,
+                    follower.Characteristics.HitPoints,
+                    follower.Leadership
+                );
+
                 creatureList.Add(follower);
 
                 DisplayProcessStatus(follower.Id, quarter);
             }
 
             // Store creature data into JSON file
-            await ExternalServices.Instance.SaveJsonAsync(creatureList, $@"{_jsonFolder}\LGCreatures.json");
+            await GenericExternalServices<IEnumerable<Follower>>.Instance.SaveJsonAsync
+            (
+                creatureList,
+                $@"{_jsonFolder}\LGCreatures.json"
+            );
         }
 
-        private string _endpoint;
-        private IEnumerable<string> _owners;
+        // Async method to check/update owners guild values
+        public async Task EnsureOwnersStatusAsync()
+        {
+            IList<Owner> owners = new List<Owner>();
+            
+            foreach (var id in _ownerIds)
+            {
+                // Obtain owner guild dataset
+                HtmlDocument htmlDoc =
+                    await ExternalServices.Instance.GetHtmlAsync($@"{_endpointCP}/{id}");
+
+                int leaderGuildLvl = ConvertToNumber
+                (
+                    htmlDoc.DocumentNode.SelectSingleNode
+                    (
+                        "(//table[@class='report']//tr)[last()]//b"
+                    )
+                    .InnerText
+                );
+
+                var owner = new Owner()
+                {
+                    Id = id,
+                    LeaderGuildLvl = leaderGuildLvl
+                };
+
+                owners.Add(owner);
+            }
+
+            // Add low lvl player guild info (should be removed in future)
+            owners.Add(new Owner() { Id = 7719041, LeaderGuildLvl = 0 });
+
+            _owners = owners;
+        }
+
+        private string _endpointLG;
+        private string _endpointCP;
+        private IEnumerable<int> _ownerIds;
         private string _jsonFolder;
         private string _imageFolder;
 
+        private IEnumerable<Owner> _owners;
+
         // Async method to obtain followers for each owner
-        private async Task<IDictionary<int, IList<string>>> CreateOwnersCollection
-            (IEnumerable<string> ownerIds, string endpoint)
+        private async Task<IDictionary<int, string[,]>> CreateOwnersCollection
+            (IEnumerable<int> ownerIds, string endpoint)
         {
-            IDictionary<int, IList<string>> collection = new Dictionary<int, IList<string>>();
+            var collection = new Dictionary<int, string[,]>();
+
+            string commonXPath =
+                "//div[contains(@style, 'display:flex;flex-wrap: wrap;')]//div[@class='cre_mon_parent']";
+            string nameXPath = "/a";
+            string countXPath = "/div[@class='cre_amount']";
 
             int lowPlayerId = 7719041;
 
             // Load JSON file for low lvl player into standard object representation
             var localFollowers =
-                JsonConvert.DeserializeObject<IList<string>>
+                JsonConvert.DeserializeObject<string[,]>
                 (
                     File.ReadAllText($@"{_jsonFolder}\{lowPlayerId}.json")
                 );
 
-            foreach (var ownerId in ownerIds)
+            foreach (int ownerId in ownerIds)
             {
                 HtmlDocument ownerDoc =
                     await ExternalServices.Instance.GetHtmlAsync($@"{endpoint}/collection/{ownerId}");
 
-                var followers = ownerDoc.DocumentNode.SelectNodes
-                (
-                    "//div[contains(@style, 'display:flex;flex-wrap: wrap;')]//div[@class='cre_mon_parent']/a"
-                )
-                .Select(n => n.Attributes["title"]?.Value)
-                .ToList();
+                var nameArray = 
+                    ownerDoc.DocumentNode.SelectNodes($"{commonXPath}{nameXPath}")
+                                         .Select(n => n.Attributes["title"]?.Value)
+                                         .ToArray();
 
-                collection.Add(ConvertToNumber(ownerId), followers);
+                var countArray =
+                    ownerDoc.DocumentNode.SelectNodes($"{commonXPath}{countXPath}")
+                                         .Select(c => c.InnerText)
+                                         .ToArray();
+
+                collection.Add
+                (
+                    ownerId,
+                    DataTypeConvertor<string>.ConvertTo2DArray(nameArray, countArray)
+                );
             }
 
             // Add local collection for players whose lvl < 5
@@ -278,24 +343,47 @@ namespace HWM.Parser
             return rarity;
         }
 
-        // Method to assign owners for every follower (if exists)
-        private IList<int> SetOwners
+        // Method to assign owners and extra info for every follower (if exists)
+        private IList<Pool> SetPools
         (
-            IDictionary<int, IList<string>> collections,
-            string follower
+            IDictionary<int, string[,]> collections,
+            string follower,
+            int hitPoints,
+            int followersLeadership
         )
         {
-            IList<int> ownersList = new List<int>();
+            IList<Pool> poolsList = new List<Pool>();
 
             foreach (var collection in collections)
             {
-                if (collection.Value.Contains(follower))
+                int ownerlvlLG = _owners.FirstOrDefault(o => o.Id == collection.Key).LeaderGuildLvl;
+                int allowedCount =
+                    (int)Math.Floor
+                    (
+                        0.4 * ((ownerlvlLG < 10) ? (10000 + ownerlvlLG * 1000) : 20000) / followersLeadership
+                    );
+                
+                for (var i = 0; i < collection.Value.GetLength(0); i++)
                 {
-                    ownersList.Add(collection.Key);
+                    if (collection.Value[i, 0] == follower)
+                    {
+                        int inStock = ConvertToNumber(collection.Value[i, 1]);
+                        allowedCount = (inStock < allowedCount) ? inStock : allowedCount;
+
+                        var pool = new Pool()
+                        {
+                            OwnerId = collection.Key,
+                            InStock = inStock,
+                            AllowedCount = allowedCount,
+                            AllowedHP = allowedCount * hitPoints
+                        };
+
+                        poolsList.Add(pool);
+                    }
                 }
             }
 
-            return ownersList;
+            return poolsList;
         }
     }
 }

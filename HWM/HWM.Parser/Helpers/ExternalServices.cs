@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Net.Http;
@@ -8,9 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 using HtmlAgilityPack;
-using Newtonsoft.Json;
-
-using HWM.Parser.Entities.LeaderGuild;
 
 
 namespace HWM.Parser.Helpers
@@ -60,22 +56,6 @@ namespace HWM.Parser.Helpers
             doc.LoadHtml(html);
 
             return doc;
-        }
-
-        // Asynchronous method to load JSON from file
-        public async Task<IEnumerable<Follower>> LoadJsonAsync(string path)
-        {
-            string json = await File.ReadAllTextAsync(path);
-
-            return JsonConvert.DeserializeObject<IEnumerable<Follower>>(json);
-        }
-
-        // Asynchronous method to store JSON in file
-        public async Task SaveJsonAsync(IEnumerable<Follower> data, string path)
-        {
-            string json = JsonConvert.SerializeObject(data, Formatting.Indented);
-
-            await File.WriteAllTextAsync(path, json);
         }
     }
 }

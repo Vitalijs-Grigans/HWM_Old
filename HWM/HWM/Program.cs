@@ -33,11 +33,15 @@ namespace HWM
                 new Dictionary<string, string>()
                 {
                     { "LeaderGuildEndpoint", settings.LeaderGuildEndpoint },
+                    { "CharacterProgressEndpoint", settings.CharacterProgressEndpoint },
                     { "CreatureOwnersList", string.Join(",", settings.CreatureOwnersList) },
                     { "ParseResultsFolder", settings.ParseResultsFolder },
                     { "CreatureImageFolder", settings.CreatureImageFolder },
                 }
             );
+
+            // Verify character leader guild lvl
+            await parser.EnsureOwnersStatusAsync();
 
             // Execute data fetching part
             await parser.CollectDataAsync();

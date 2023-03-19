@@ -21,17 +21,37 @@ namespace HWM.WebApp.Controllers
         [HttpGet]
         public IActionResult Index(int ownerId = 0)
         {
+            // Should be moved to configuration section
             string path = @"D:\Database\HWM\Leader\LGCreatures_ext.json";
             string json = System.IO.File.ReadAllText(path, System.Text.Encoding.UTF8);
 
-            IEnumerable<FollowerModel> followerList =
-                JsonConvert.DeserializeObject<IEnumerable<FollowerModel>>(json) ??
+            IList<FollowerModel> followers =
+                JsonConvert.DeserializeObject<IList<FollowerModel>>(json) ??
                 throw new ArgumentException();
 
+            IList<FollowerModel> followerList = new List<FollowerModel>();
+
             if (ownerId > 0)
+            {   
+                foreach (var follower in followers.Where(f => f.Tier != 4))
+                {
+                    var pool = follower.Pools.FirstOrDefault(p => p.OwnerId == ownerId);
+
+                    if (pool != null)
+                    {
+                        follower.ActivePoolId = follower.Pools.IndexOf(pool);
+                        followerList.Add(follower);
+                    }
+                }
+
+                ViewData["HasOwner"] = true;
+            }
+
+            else
             {
-                followerList = 
-                    followerList.Where(f => f.Owners.Contains(ownerId) && f.Tier != 4);
+                followerList = followers;
+
+                ViewData["HasOwner"] = false;
             }
 
             return View(followerList);
